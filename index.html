@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NetVista 3D | Connection-Oriented vs Connectionless Services</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <!-- Academic Header -->
+    <header>
+      <div class="header-top">
+        <div class="header-badge-group">
+          <div class="academic-badge">
+            <span>⚡ ITUC201: FUNDAMENTALS OF COMPUTER NETWORKS</span>
+          </div>
+          <button id="themeToggleBtn" class="theme-toggle-btn" title="Toggle Light/Dark Theme">
+            <span id="themeIcon">🌙</span> <span id="themeLabel">Dark Theme</span>
+          </button>
+        </div>
+        <div class="assessment-tag">
+          NetVista 3D Individual Assessment · Maximum Marks: 20
+        </div>
+      </div>
+      <h1>Connection-Oriented vs Connectionless Services</h1>
+      <p class="subtitle">
+        An interactive, responsive network visualization demonstrating TCP 3-way handshake, reliable byte-stream transfer, 4-way termination, and UDP independent datagram routing across intermediate network routers.
+      </p>
+    </header>
+
+    <!-- Top Navigation Tabs -->
+    <nav class="tabs-nav" role="tablist">
+      <button id="tabSimTcp" class="nav-tab active" role="tab" aria-selected="true">
+        <span>🔄</span> TCP (Connection-Oriented)
+      </button>
+      <button id="tabSimUdp" class="nav-tab" role="tab" aria-selected="false">
+        <span>⚡</span> UDP (Connectionless)
+      </button>
+      <button id="tabComparison" class="nav-tab" role="tab" aria-selected="false">
+        <span>📊</span> Comparison Matrix
+      </button>
+      <button id="tabTheory" class="nav-tab" role="tab" aria-selected="false">
+        <span>📚</span> Service vs Protocol Deep-Dive
+      </button>
+      <button id="tabExam" class="nav-tab" role="tab" aria-selected="false">
+        <span>🎓</span> Solved Exam & Practice Questions
+      </button>
+    </nav>
+
+    <!-- TAB 1 & 2: Interactive Simulation Panel -->
+    <div id="panelSim" class="tab-content-panel active">
+      <div class="dashboard-grid">
+        <!-- Left: Canvas Scene & Controls -->
+        <main class="panel-card">
+          <div class="panel-title-bar">
+            <div class="panel-title">
+              <span>📡 Interactive Network Topology</span>
+            </div>
+            <div class="scenario-selector-wrap">
+              <label for="scenarioSelect">Scenario:</label>
+              <select id="scenarioSelect" class="scenario-select"></select>
+            </div>
+          </div>
+
+          <!-- Network Canvas -->
+          <div class="network-canvas-scene" id="networkCanvas">
+            <div class="canvas-grid-bg"></div>
+
+            <!-- SVG Link Overlay -->
+            <svg class="network-links-svg" viewBox="0 0 1000 380" preserveAspectRatio="none">
+              <!-- Path via Router 1 (top): Sender (140, 190) -> R1 (500, 91) -> Receiver (860, 190) -->
+              <path id="linkR1" class="link-line" d="M 140 190 Q 320 85 500 91 T 860 190" />
+              <!-- Path via Router 2 (bottom): Sender (140, 190) -> R2 (500, 289) -> Receiver (860, 190) -->
+              <path id="linkR2" class="link-line" d="M 140 190 Q 320 295 500 289 T 860 190" />
+              <!-- Logical Virtual Connection (direct horizontal line for TCP established state) -->
+              <line id="linkVirtual" class="link-line" x1="140" y1="190" x2="860" y2="190" />
+            </svg>
+
+            <!-- Sender Node (Host A) -->
+            <div class="network-node sender-node">
+              <div class="node-icon-box">💻</div>
+              <div class="node-name">Client Host A</div>
+              <div class="node-ip">192.168.1.10:49152</div>
+              <div id="senderSocketState" class="node-socket-state state-closed">CLOSED</div>
+            </div>
+
+            <!-- Core Router 1 (Fast Link) -->
+            <div class="router-node router-1">
+              <div class="router-icon-box">🌐</div>
+              <div class="router-name">Router R1</div>
+              <div class="router-detail">Primary (20ms)</div>
+            </div>
+
+            <!-- Auxiliary Router 2 (Alternate Link) -->
+            <div class="router-node router-2">
+              <div class="router-icon-box">🔀</div>
+              <div class="router-name">Router R2</div>
+              <div class="router-detail">Alternate (45ms)</div>
+            </div>
+
+            <!-- Receiver Node (Host B) -->
+            <div class="network-node receiver-node">
+              <div class="node-icon-box">🖥️</div>
+              <div class="node-name">Server Host B</div>
+              <div class="node-ip">203.0.113.50:80</div>
+              <div id="receiverSocketState" class="node-socket-state state-listen">LISTEN</div>
+            </div>
+
+            <!-- Moving Packet Animation Layer -->
+            <div id="packetAnimLayer" class="packet-anim-layer"></div>
+
+            <!-- Live Status Callout inside canvas -->
+            <div class="scene-live-banner">
+              <span id="bannerBadge" class="banner-badge">INITIALIZING</span>
+              <div id="bannerDesc" class="banner-desc">Ready to start.</div>
+            </div>
+          </div>
+
+          <!-- Controls Bar -->
+          <div class="controls-bar">
+            <div class="playback-buttons">
+              <button id="btnPrev" class="btn" title="Go to previous step (Left Arrow)">⏮ Prev Step</button>
+              <button id="btnNext" class="btn btn-primary" title="Go to next step (Right Arrow)">Next Step ⏭</button>
+              <button id="btnPlay" class="btn" title="Toggle automatic animation (Space)">▶ Play Demo</button>
+              <button id="btnReset" class="btn" title="Reset simulation (R)">↺ Reset</button>
+            </div>
+
+            <div class="speed-control-group">
+              <span>Speed:</span>
+              <button class="speed-btn" data-speed="0.75">0.75x</button>
+              <button class="speed-btn active" data-speed="1.0">1.0x</button>
+              <button class="speed-btn" data-speed="1.5">1.5x</button>
+            </div>
+          </div>
+
+          <!-- Real-Time Metrics Strip -->
+          <div class="metrics-strip">
+            <div class="metric-box">
+              <div id="metricStep" class="metric-val">0 / 0</div>
+              <div class="metric-lbl">Step Progress</div>
+            </div>
+            <div class="metric-box">
+              <div id="metricDelay" class="metric-val">1 RTT</div>
+              <div class="metric-lbl">Connection Overhead</div>
+            </div>
+            <div class="metric-box">
+              <div id="metricHeader" class="metric-val">20–60 B</div>
+              <div class="metric-lbl">Transport Header</div>
+            </div>
+            <div class="metric-box">
+              <div id="metricState" class="metric-val">Closed</div>
+              <div class="metric-lbl">End-to-End State</div>
+            </div>
+          </div>
+        </main>
+
+        <!-- Right: Clickable Timeline & Packet Inspector -->
+        <aside class="side-stack">
+          <!-- Step Timeline -->
+          <div class="panel-card" style="padding: 16px;">
+            <div class="panel-title" style="font-size: 14px; margin-bottom: 10px;">
+              <span>📜 Step-by-Step Sequence</span>
+            </div>
+            <div id="stepTimeline" class="step-timeline-container"></div>
+          </div>
+
+          <!-- Packet Inspector -->
+          <div class="packet-inspector-box">
+            <div class="inspector-header">
+              <div class="inspector-title">🔍 PDU Packet Inspector</div>
+              <div id="inspPduType" class="pdu-badge">Segment</div>
+            </div>
+            <div class="inspector-grid">
+              <div class="field-cell">
+                <div class="field-lbl">Protocol</div>
+                <div id="inspProtocol" class="field-val">TCP</div>
+              </div>
+              <div class="field-cell">
+                <div class="field-lbl">Src / Dst Port</div>
+                <div class="field-val"><span id="inspSrcPort">--</span> → <span id="inspDstPort">--</span></div>
+              </div>
+              <div class="field-cell">
+                <div class="field-lbl">Sequence No. (Seq)</div>
+                <div id="inspSeq" class="field-val">--</div>
+              </div>
+              <div class="field-cell">
+                <div class="field-lbl">Ack No. (Ack)</div>
+                <div id="inspAck" class="field-val">--</div>
+              </div>
+              <div class="field-cell">
+                <div class="field-lbl">Header Length</div>
+                <div id="inspHdrLen" class="field-val">--</div>
+              </div>
+              <div class="field-cell">
+                <div class="field-lbl">Payload Length</div>
+                <div id="inspPayloadLen" class="field-val">--</div>
+              </div>
+              <div class="field-cell field-flags">
+                <div class="field-lbl">Control Flags</div>
+                <div id="inspFlagsList" class="flags-tag-list"></div>
+              </div>
+              <div class="field-cell field-flags">
+                <div class="field-lbl">Application Payload</div>
+                <div id="inspPayload" class="field-val" style="font-size: 10px; color: #94a3b8;">--</div>
+              </div>
+              <div class="field-cell field-flags">
+                <div class="field-lbl">Header Checksum</div>
+                <div id="inspChecksum" class="field-val" style="color: #38ef7d;">--</div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- TAB 3: Comparison Matrix -->
+    <div id="panelComparison" class="tab-content-panel">
+      <section class="panel-card">
+        <div class="panel-title-bar">
+          <div class="panel-title">
+            <span>📊 Comprehensive Technical Comparison: Connection-Oriented vs Connectionless Services</span>
+          </div>
+        </div>
+        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">
+          This matrix synthesizes core differences between connection-oriented (e.g., TCP) and connectionless (e.g., UDP) services across 10 essential networking dimensions.
+        </p>
+
+        <div class="comparison-table-wrap">
+          <table class="netvista-table">
+            <thead>
+              <tr>
+                <th style="width: 18%;">Dimension / Metric</th>
+                <th style="width: 41%;">Connection-Oriented Service (e.g., TCP)</th>
+                <th style="width: 41%;">Connectionless Service (e.g., UDP)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>1. Operational Paradigm</strong></td>
+                <td>Three distinct sequential phases: <strong>Connection Establishment</strong>, <strong>Data Transfer</strong>, and <strong>Connection Release</strong>.</td>
+                <td>Single-phase operation: Each datagram is transmitted independently without prior negotiation or session state.</td>
+              </tr>
+              <tr>
+                <td><strong>2. Handshake & Overhead</strong></td>
+                <td>Requires a <strong>3-Way Handshake</strong> (SYN → SYN-ACK → ACK) incurring at least 1 Round-Trip Time (RTT) initial latency.</td>
+                <td><strong>0 RTT setup latency</strong>. Data can be transmitted immediately upon application request.</td>
+              </tr>
+              <tr>
+                <td><strong>3. Delivery Guarantee</strong></td>
+                <td><strong>Reliable Delivery:</strong> Positive acknowledgements (ACK), automatic retransmission (ARQ), duplicate filtering, and checksum integrity.</td>
+                <td><strong>Best-Effort Delivery:</strong> Unreliable; packets may be lost, duplicated, or delayed without transport-layer notification.</td>
+              </tr>
+              <tr>
+                <td><strong>4. Packet Ordering</strong></td>
+                <td><strong>Strictly Ordered:</strong> Sequence numbers ensure segments are reassembled and delivered to the application in the exact order transmitted.</td>
+                <td><strong>Unordered:</strong> Datagrams may follow diverse physical routes and arrive at the destination out of order.</td>
+              </tr>
+              <tr>
+                <td><strong>5. Flow & Congestion Control</strong></td>
+                <td>Features dynamic sliding-window <strong>flow control</strong> (advertised window <code>rwnd</code>) and <strong>congestion control</strong> (slow start, congestion avoidance, <code>cwnd</code>).</td>
+                <td><strong>No built-in flow or congestion control</strong>. Sender transmits at application rate, irrespective of network or receiver capacity.</td>
+              </tr>
+              <tr>
+                <td><strong>6. Transport Header Size</strong></td>
+                <td><strong>20 to 60 bytes</strong> (20 bytes baseline header + optional fields such as MSS, Window Scale, Timestamps, SACK).</td>
+                <td><strong>8 bytes fixed</strong> (Source Port [16b], Destination Port [16b], Length [16b], Checksum [16b]). Minimal overhead.</td>
+              </tr>
+              <tr>
+                <td><strong>7. State Maintenance</strong></td>
+                <td><strong>Stateful:</strong> Both endpoints maintain Transmission Control Blocks (TCBs) tracking sequence numbers, timers, buffers, and socket states.</td>
+                <td><strong>Stateless:</strong> Neither endpoints nor intermediate routers maintain persistent session state for datagram flows.</td>
+              </tr>
+              <tr>
+                <td><strong>8. Packet Loss Handling</strong></td>
+                <td>Sender starts Retransmission Timeout (RTO) or triggers Fast Retransmit on 3 duplicate ACKs. Loss is completely repaired.</td>
+                <td>Transport layer takes <strong>no action</strong> upon packet drop. Any recovery logic must be implemented in the application layer.</td>
+              </tr>
+              <tr>
+                <td><strong>9. Transmission Character</strong></td>
+                <td><strong>Continuous Byte Stream:</strong> Treats data as an unstructured stream of bytes; message boundaries are not preserved across segments.</td>
+                <td><strong>Discrete Datagrams:</strong> Preserves discrete message boundaries (atomic packet boundaries intact).</td>
+              </tr>
+              <tr>
+                <td><strong>10. Canonical Applications</strong></td>
+                <td>Web browsing (HTTP/HTTPS), File Transfer (FTP/SFTP), Secure Shell (SSH), Remote Desktop (RDP), Email (SMTP/IMAP).</td>
+                <td>DNS resolution, Live Audio/Video Streaming (VoIP, RTP, Zoom), Real-Time Online Gaming, DHCP, SNMP.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- TAB 4: Theory Deep-Dive -->
+    <div id="panelTheory" class="tab-content-panel">
+      <section class="panel-card">
+        <div class="panel-title-bar">
+          <div class="panel-title">
+            <span>📚 Essential Theory: Service vs Protocol Distinction</span>
+          </div>
+        </div>
+        <p style="color: var(--text-muted); font-size: 13px; line-height: 1.6;">
+          One of the foundational concepts evaluated in ITUC201 is the rigorous distinction between an abstract <em>Service</em> and a concrete <em>Protocol</em>. In networked architectures, confusing these two leads to conceptual errors in university examinations.
+        </p>
+
+        <div class="concept-grid">
+          <div class="concept-card">
+            <h3><span>🔲</span> The Concept of a Service</h3>
+            <p>
+              A <strong>Service</strong> is an abstract set of operations and capabilities that an underlying layer provides to the adjacent upper layer (e.g., what the Transport Layer offers to the Application Layer).
+            </p>
+            <ul>
+              <li><strong>Interface Direction:</strong> Vertical boundary between adjacent layers within the same host.</li>
+              <li><strong>Definition:</strong> Specifies <em>what</em> capabilities are provided, not <em>how</em> they are implemented.</li>
+              <li><strong>Primitives:</strong> Formal service primitives specify operations: <code>LISTEN</code>, <code>CONNECT</code>, <code>SEND</code>, <code>RECEIVE</code>, <code>DISCONNECT</code>.</li>
+              <li><strong>Implementation Invariance:</strong> An application requests a reliable connection-oriented service regardless of whether the physical link is optical fibre, Ethernet, or Wi-Fi.</li>
+            </ul>
+          </div>
+
+          <div class="concept-card">
+            <h3><span>🔗</span> The Concept of a Protocol</h3>
+            <p>
+              A <strong>Protocol</strong> is a concrete set of formal syntax, semantic rules, and timing conventions governing communication between two peer entities across a network.
+            </p>
+            <ul>
+              <li><strong>Interface Direction:</strong> Horizontal exchange between peer layers on different machines.</li>
+              <li><strong>Definition:</strong> Specifies <em>how</em> the service is implemented via packet formats, bit fields, state machines, and timers.</li>
+              <li><strong>Examples:</strong> TCP (RFC 793 / RFC 9293) and UDP (RFC 768) are protocols implementing connection-oriented and connectionless services, respectively.</li>
+              <li><strong>Peer Exchange:</strong> Protocols exchange Protocol Data Units (PDUs)—Segments in TCP, Datagrams in UDP, and Packets in IP.</li>
+            </ul>
+          </div>
+
+          <div class="concept-card">
+            <h3><span>⚙️</span> The 3 Phases of Connection-Oriented Service</h3>
+            <p>
+              Every connection-oriented service follows a deterministic three-phase lifecycle:
+            </p>
+            <ul>
+              <li><strong>Phase 1: Connection Setup</strong> — Parameters, buffer allocations, and Initial Sequence Numbers (ISNs) are agreed upon via a three-way handshake.</li>
+              <li><strong>Phase 2: Data Transfer</strong> — Bidirectional data stream flows with sequence number tracking, flow control, and error correction.</li>
+              <li><strong>Phase 3: Connection Release</strong> — Resources are released in an orderly manner (using a symmetric 4-way termination with <code>TIME_WAIT</code> state).</li>
+            </ul>
+          </div>
+
+          <div class="concept-card">
+            <h3><span>🚀</span> The Datagram Model of Connectionless Service</h3>
+            <p>
+              In a connectionless service, the network operates analogously to a postal letter system:
+            </p>
+            <ul>
+              <li><strong>Autonomous Addressing:</strong> Every packet contains the full source and destination IP/port addresses.</li>
+              <li><strong>Independent Routing:</strong> Routers make dynamic forwarding decisions per packet; packets can travel across different physical routes.</li>
+              <li><strong>Zero State:</strong> Routers hold no per-flow state, making connectionless communication resilient to intermediate node crashes.</li>
+              <li><strong>Low Latency:</strong> Immediate transmission with zero round-trip handshake penalty.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- TAB 5: Solved Exam Questions -->
+    <div id="panelExam" class="tab-content-panel">
+      <!-- Solved Question 1 -->
+      <article class="exam-qa-box">
+        <div class="question-header">
+          <div class="question-title">Exam Question 1: Fully Solved University Examination Problem</div>
+          <div class="question-meta">[ITUC201 University Final Examination Standard · 10 Marks]</div>
+        </div>
+
+        <div class="question-prompt">
+          <strong>Question:</strong><br>
+          A client host (Host A) establishes a connection-oriented TCP connection with a web server (Host B) to download a 100-byte web page, and subsequently terminates the connection gracefully.<br>
+          (a) Trace the complete sequence of TCP segments exchanged from setup to teardown, specifying the Sequence Number (Seq), Acknowledgment Number (Ack), and active TCP Flags for every segment, given that Host A selects Initial Sequence Number (ISN) = 100 and Host B selects ISN = 300. Assume the HTTP request is 40 bytes and the HTTP response is 100 bytes.<br>
+          (b) Justify why TCP requires a 3-way handshake rather than a 2-way handshake.<br>
+          (c) Distinguish between connection-oriented and connectionless services with respect to packet routing, state information, and header overhead.
+        </div>
+
+        <div class="answer-section">
+          <h4>(a) Step-by-Step Segment Exchange Trace (Worked Solution)</h4>
+          <p>
+            In TCP, the SYN and FIN control flags consume exactly 1 sequence number each (phantom byte), while pure ACK segments carrying no data consume 0 sequence numbers. Application data bytes increment the sequence number by the byte count.
+          </p>
+
+          <div class="code-calc-box">
+PHASE 1: CONNECTION ESTABLISHMENT (3-Way Handshake)
+  Segment 1 [A -> B]: SYN=1, ACK=0 | Seq = 100, Ack = 0   (Client ISN = 100, consumes 1 seq)
+  Segment 2 [B -> A]: SYN=1, ACK=1 | Seq = 300, Ack = 101 (Server ISN = 300, Ack = 100 + 1)
+  Segment 3 [A -> B]: SYN=0, ACK=1 | Seq = 101, Ack = 301 (Handshake ACK, Seq = 101, Ack = 300 + 1)
+  --> Connection State: Both Host A and Host B enter ESTABLISHED state.
+
+PHASE 2: DATA TRANSFER (Bidirectional Exchange)
+  Segment 4 [A -> B]: ACK=1, PSH=1 | Seq = 101, Ack = 301, Data = 40 Bytes (HTTP Request)
+                      Bytes transmitted: 101 to 140.
+  Segment 5 [B -> A]: ACK=1, PSH=1 | Seq = 301, Ack = 141, Data = 100 Bytes (HTTP Response)
+                      Server confirms bytes up to 140 (Ack = 141). Transmits bytes 301 to 400.
+  Segment 6 [A -> B]: ACK=1, PSH=0 | Seq = 141, Ack = 401, Data = 0 Bytes
+                      Client acknowledges all 100 bytes of response (Ack = 301 + 100 = 401).
+
+PHASE 3: CONNECTION RELEASE (4-Way Termination)
+  Segment 7 [A -> B]: FIN=1, ACK=1 | Seq = 141, Ack = 401 (Host A Active Close, consumes 1 seq)
+                      Host A enters FIN_WAIT_1.
+  Segment 8 [B -> A]: ACK=1        | Seq = 401, Ack = 142 (Host B acknowledges FIN: 141 + 1 = 142)
+                      Host B enters CLOSE_WAIT; Host A enters FIN_WAIT_2.
+  Segment 9 [B -> A]: FIN=1, ACK=1 | Seq = 401, Ack = 142 (Host B initiates its own close)
+                      Host B enters LAST_ACK.
+  Segment 10 [A -> B]: ACK=1       | Seq = 142, Ack = 402 (Host A acknowledges FIN: 401 + 1 = 402)
+                      Host A enters TIME_WAIT (2 MSL); Host B enters CLOSED.
+          </div>
+
+          <h4>(b) Justification for 3-Way Handshake vs 2-Way Handshake</h4>
+          <p>
+            A 2-way handshake is insufficient in an unreliable packet-switched network where duplicate or delayed packets can exist. Consider the following failure scenario:
+          </p>
+          <ul style="padding-left: 20px; line-height: 1.6; margin: 6px 0 10px;">
+            <li>If Host A sends a SYN that is delayed in transit, Host A may time out and abandon the attempt.</li>
+            <li>If that old, duplicate SYN eventually arrives at Host B hours later, under a 2-way handshake, Host B would immediately allocate server buffers and enter <code>ESTABLISHED</code> state upon transmitting its response.</li>
+            <li>Host A, receiving the unexpected response, simply ignores it. Host B is left holding a half-open connection with leaked system memory.</li>
+            <li>The <strong>3-way handshake prevents phantom connections</strong>: Host B is only committed once Host A confirms receipt via the third segment (ACK), verifying that the request is fresh and active.</li>
+          </ul>
+
+          <h4>(c) Technical Comparison Table (Routing, State, Overhead)</h4>
+          <table class="netvista-table" style="margin-top: 8px;">
+            <thead>
+              <tr>
+                <th>Criteria</th>
+                <th>Connection-Oriented Service (TCP)</th>
+                <th>Connectionless Service (UDP)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Packet Routing</strong></td>
+                <td>Segments belong to a single logical session; in virtual circuits they follow a predetermined path, in TCP/IP they travel through routers with end-to-end sequencing.</td>
+                <td>Every datagram is routed completely independently. Successive packets may take entirely different physical routes and arrive out of order.</td>
+              </tr>
+              <tr>
+                <td><strong>State Information</strong></td>
+                <td>Both endpoints maintain stateful Transmission Control Blocks (TCB) tracking sequence numbers, sliding windows, timers, and socket states.</td>
+                <td>Stateless. Neither end system nor intermediate routers maintain ongoing session records.</td>
+              </tr>
+              <tr>
+                <td><strong>Header Overhead</strong></td>
+                <td>20 to 60 bytes per segment (contains sequence numbers, ACK numbers, 6 control flags, window size, options).</td>
+                <td>8 bytes fixed per datagram (Source Port, Destination Port, Length, Checksum).</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <!-- Practice Question 2 -->
+      <article class="exam-qa-box">
+        <div class="question-header">
+          <div class="question-title">Practice Question 2: Transport Protocol Selection for Real-Time Multimedia</div>
+          <div class="question-meta">[Concept Reinforcement & Numerical Analysis · 5 Marks]</div>
+        </div>
+
+        <div class="question-prompt">
+          <strong>Question:</strong><br>
+          A real-time Voice-over-IP (VoIP) application generates 160-byte audio payload samples every 20 ms. Compare whether a connection-oriented service (TCP) or a connectionless service (UDP) is superior for this scenario. Include a quantitative header overhead calculation and discuss the impact of packet retransmission.
+        </div>
+
+        <div class="answer-section">
+          <h4>Solution & Analysis:</h4>
+          <p><strong>1. Quantitative Header Overhead Comparison:</strong></p>
+          <div class="code-calc-box">
+Given Application Payload = 160 bytes
+
+Case A: Connection-Oriented Service (TCP, minimum 20-byte header)
+  Total Packet Size = 160 B + 20 B = 180 bytes
+  Transport Header Overhead = (20 / 180) * 100% = 11.11%
+
+Case B: Connectionless Service (UDP, fixed 8-byte header)
+  Total Packet Size = 160 B + 8 B = 168 bytes
+  Transport Header Overhead = (8 / 168) * 100% = 4.76%
+
+Result: UDP reduces transport-layer protocol overhead by over 57% relative to TCP.
+          </div>
+
+          <p><strong>2. Latency, Jitter, and Retransmission Impact:</strong></p>
+          <p>
+            In human conversational speech, end-to-end one-way delay must remain below <strong>150 ms</strong> (ITU-T G.114 standard). If TCP is utilized:
+          </p>
+          <ul style="padding-left: 20px; line-height: 1.6; margin: 6px 0 10px;">
+            <li>When an audio packet is dropped, TCP halts delivery of subsequent packets (Head-of-Line Blocking) while waiting for retransmission.</li>
+            <li>By the time the retransmitted packet arrives (at least 1 RTT later), the playback deadline has already passed, rendering the audio data useless.</li>
+            <li>UDP drops corrupt or lost packets gracefully; human ear codecs can interpolate minor loss (Packet Loss Concealment), preserving real-time conversational flow without delay spikes.</li>
+          </ul>
+          <p><strong>Conclusion:</strong> Connectionless service (UDP) is emphatically superior for real-time interactive audio/video.</p>
+        </div>
+      </article>
+
+      <!-- Practice Question 3 -->
+      <article class="exam-qa-box">
+        <div class="question-header">
+          <div class="question-title">Practice Question 3: The Role of the TIME_WAIT State in Connection Release</div>
+          <div class="question-meta">[State Machine Analysis · 5 Marks]</div>
+        </div>
+
+        <div class="question-prompt">
+          <strong>Question:</strong><br>
+          During graceful connection release in a connection-oriented service (TCP), why does the active-closing endpoint enter the <code>TIME_WAIT</code> state for a duration of 2 MSL (Maximum Segment Lifetime), rather than transitioning directly to <code>CLOSED</code>?
+        </div>
+
+        <div class="answer-section">
+          <h4>Solution & Justification:</h4>
+          <p>The active closer must remain in the <code>TIME_WAIT</code> state for 2 MSL (typically 1 to 2 minutes) for two crucial architectural reasons:</p>
+          
+          <p><strong>Reason 1: Reliable Delivery of the Final ACK (Segment 10)</strong></p>
+          <p>
+            If the client's final ACK segment is lost in the network, the server will time out and retransmit its FIN segment. If the client had immediately closed its socket:
+          </p>
+          <ul style="padding-left: 20px; line-height: 1.6; margin: 4px 0 8px;">
+            <li>Upon receiving the retransmitted FIN, the client would respond with a <code>RST</code> (Reset) segment because the port is closed.</li>
+            <li>The server would interpret this as an abnormal, aborted closure rather than an orderly teardown.</li>
+            <li>Remaining in <code>TIME_WAIT</code> allows the client to re-acknowledge any retransmitted FIN.</li>
+          </ul>
+
+          <p><strong>Reason 2: Preventing Old Duplicate Packets from Corrupting New Connections</strong></p>
+          <p>
+            In IP networks, packets may be delayed in routing loops. If a new connection were immediately opened on the identical 4-tuple (Source IP, Source Port, Dest IP, Dest Port), an old duplicate packet from the previous session might arrive and be accepted as valid new data.
+          </p>
+          <p>
+            By waiting <strong>2 MSL</strong> (1 MSL for the forward direction + 1 MSL for the return direction), the network guarantees that all duplicate packets from the defunct session have expired and dissipated before the socket pair can be reused.
+          </p>
+        </div>
+      </article>
+    </div>
+
+    <!-- Academic Footer -->
+    <footer>
+      <p>
+        NetVista 3D: Individual Performance-Based Assessment · ITUC201: Fundamentals of Computer Networks<br>
+        Topic: Connection-Oriented and Connectionless Services · Student ID: 25CS074<br>
+        Educational simulation only. Packet animations are illustrative state representations, not live-network packet captures.<br>
+        AI assistance and external references acknowledged in compliance with institutional academic integrity guidelines.
+      </p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

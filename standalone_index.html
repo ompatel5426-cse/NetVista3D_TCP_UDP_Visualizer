@@ -1,0 +1,2694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NetVista 3D | Connection-Oriented vs Connectionless Services</title>
+  <style>
+:root {
+  /* White / Light Theme Variables (Default) */
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-card-subtle: #f1f5f9;
+  --border-color: #e2e8f0;
+  --border-highlight: #cbd5e1;
+  
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --text-dim: #64748b;
+  
+  --primary-cyan: #0284c7;
+  --primary-cyan-glow: rgba(2, 132, 199, 0.25);
+  --accent-blue: #2563eb;
+  --accent-green: #059669;
+  --accent-amber: #d97706;
+  --accent-rose: #e11d48;
+  --accent-purple: #7c3aed;
+  
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 14px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 10px 25px rgba(15, 23, 42, 0.08);
+  
+  --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+
+/* Optional Dark Theme when toggled */
+body.dark-theme {
+  --bg-page: #070e1b;
+  --bg-card: #0d1829;
+  --bg-card-subtle: #12223a;
+  --border-color: #1e3352;
+  --border-highlight: #2c4d7c;
+  
+  --text-main: #f0f6fc;
+  --text-muted: #8fa5c4;
+  --text-dim: #647b9b;
+  
+  --primary-cyan: #00e5ff;
+  --primary-cyan-glow: rgba(0, 229, 255, 0.35);
+  --accent-blue: #3b82f6;
+  --accent-green: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-rose: #f43f5e;
+  --accent-purple: #8b5cf6;
+  
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  font-family: var(--font-stack);
+  line-height: 1.5;
+  min-height: 100vh;
+  background-image: 
+    radial-gradient(circle at 10% 10%, rgba(2, 132, 199, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 90% 90%, rgba(37, 99, 235, 0.04) 0%, transparent 40%);
+  background-attachment: fixed;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+}
+
+/* Header Section */
+header {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.header-badge-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.academic-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(2, 132, 199, 0.1);
+  border: 1px solid rgba(2, 132, 199, 0.25);
+  color: var(--primary-cyan);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: 20px;
+}
+
+.assessment-tag {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-toggle-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--bg-card-subtle);
+  border-color: var(--border-highlight);
+}
+
+h1 {
+  font-size: clamp(24px, 3.5vw, 34px);
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 12px 0 6px;
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 14px;
+  max-width: 840px;
+  line-height: 1.6;
+}
+
+/* Navigation Tabs */
+.tabs-nav {
+  display: flex;
+  gap: 10px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 12px;
+}
+
+.nav-tab {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+.nav-tab:hover {
+  background: var(--bg-card-subtle);
+  border-color: var(--border-highlight);
+  color: var(--text-main);
+}
+
+.nav-tab.active {
+  background: var(--primary-cyan);
+  border-color: var(--primary-cyan);
+  color: #ffffff;
+  box-shadow: 0 4px 14px var(--primary-cyan-glow);
+}
+
+/* Main Dashboard Grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.75fr) minmax(320px, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.panel-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--shadow-md);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.panel-title-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.panel-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Scenario Selector */
+.scenario-selector-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.scenario-select {
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  outline: none;
+  cursor: pointer;
+}
+
+.scenario-select:focus {
+  border-color: var(--primary-cyan);
+}
+
+/* Topology Canvas Scene */
+.network-canvas-scene {
+  position: relative;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  height: 380px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+body.dark-theme .network-canvas-scene {
+  background: linear-gradient(180deg, #091322 0%, #0b182b 100%);
+}
+
+.canvas-grid-bg {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(148, 163, 184, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.18) 1px, transparent 1px);
+  background-size: 30px 30px;
+  pointer-events: none;
+}
+
+body.dark-theme .canvas-grid-bg {
+  background-image: 
+    linear-gradient(rgba(30, 51, 82, 0.25) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 51, 82, 0.25) 1px, transparent 1px);
+}
+
+/* Nodes */
+.network-node {
+  position: absolute;
+  width: 130px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-highlight);
+  border-radius: 12px;
+  padding: 12px 10px;
+  text-align: center;
+  z-index: 3;
+  box-shadow: var(--shadow-md);
+  transition: all 0.3s ease;
+}
+
+.network-node.sender-node {
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.network-node.receiver-node {
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.node-icon-box {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 8px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+}
+
+.node-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 2px;
+}
+
+.node-ip {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text-dim);
+}
+
+.node-socket-state {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-top: 6px;
+  background: var(--bg-card-subtle);
+  color: var(--text-muted);
+  border: 1px solid transparent;
+}
+
+.node-socket-state.state-listen { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+.node-socket-state.state-syn-sent { background: #f0fdf4; color: #0284c7; border-color: #bae6fd; }
+.node-socket-state.state-syn-rcvd { background: #faf5ff; color: #7c3aed; border-color: #e9d5ff; }
+.node-socket-state.state-established { background: #ecfdf5; color: #059669; border-color: #a7f3d0; }
+.node-socket-state.state-closing { background: #fffbeb; color: #d97706; border-color: #fde68a; }
+.node-socket-state.state-closed { background: #fff1f2; color: #e11d48; border-color: #fecdd3; }
+.node-socket-state.state-stateless { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+
+body.dark-theme .node-socket-state.state-listen { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border-color: transparent; }
+body.dark-theme .node-socket-state.state-syn-sent { background: rgba(0, 229, 255, 0.15); color: #38bdf8; border-color: transparent; }
+body.dark-theme .node-socket-state.state-syn-rcvd { background: rgba(139, 92, 246, 0.15); color: #c084fc; border-color: transparent; }
+body.dark-theme .node-socket-state.state-established { background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: transparent; }
+body.dark-theme .node-socket-state.state-closing { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: transparent; }
+body.dark-theme .node-socket-state.state-closed { background: rgba(244, 63, 94, 0.15); color: #fb7185; border-color: transparent; }
+body.dark-theme .node-socket-state.state-stateless { background: rgba(143, 165, 196, 0.15); color: #94a3b8; border-color: transparent; }
+
+/* Routers */
+.router-node {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  text-align: center;
+  width: 84px;
+}
+
+.router-node.router-1 {
+  top: 18%;
+}
+
+.router-node.router-2 {
+  bottom: 18%;
+}
+
+.router-icon-box {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 4px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-highlight);
+  box-shadow: var(--shadow-md);
+}
+
+.router-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.router-detail {
+  font-size: 9px;
+  color: var(--text-dim);
+}
+
+/* SVG Network Links */
+.network-links-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.link-line {
+  stroke: #cbd5e1;
+  stroke-width: 2.5;
+  stroke-dasharray: 4 4;
+  fill: none;
+  transition: stroke 0.3s ease, stroke-width 0.3s ease;
+}
+
+body.dark-theme .link-line {
+  stroke: #1f3552;
+}
+
+.link-line.active-link {
+  stroke: var(--primary-cyan);
+  stroke-width: 3.5;
+  stroke-dasharray: none;
+  filter: drop-shadow(0 0 6px var(--primary-cyan-glow));
+}
+
+.link-line.udp-link {
+  stroke: var(--accent-purple);
+  stroke-width: 3;
+  stroke-dasharray: 6 4;
+}
+
+/* Packet Animation Element */
+.packet-anim-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.packet-pill {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1), top 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: left, top;
+}
+
+.packet-pill.pkt-syn { background: #2563eb; color: #ffffff; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); }
+.packet-pill.pkt-syn-ack { background: #0891b2; color: #ffffff; box-shadow: 0 4px 12px rgba(8, 145, 178, 0.4); }
+.packet-pill.pkt-ack { background: #16a34a; color: #ffffff; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4); }
+.packet-pill.pkt-data { background: #ea580c; color: #ffffff; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.4); }
+.packet-pill.pkt-fin { background: #e11d48; color: #ffffff; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.4); }
+.packet-pill.pkt-udp { background: #7c3aed; color: #ffffff; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4); }
+.packet-pill.pkt-dropped { background: #dc2626; color: #ffffff; text-decoration: line-through; border: 1px dashed #ffffff; }
+
+/* Status Banner inside canvas */
+.scene-live-banner {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-highlight);
+  border-radius: 10px;
+  padding: 10px 14px;
+  z-index: 4;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+body.dark-theme .scene-live-banner {
+  background: rgba(13, 24, 41, 0.92);
+}
+
+.banner-badge {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(2, 132, 199, 0.12);
+  color: var(--primary-cyan);
+  white-space: nowrap;
+}
+
+.banner-desc {
+  font-size: 12px;
+  color: var(--text-main);
+  line-height: 1.45;
+}
+
+/* Control Action Bar */
+.controls-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-color);
+}
+
+.playback-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-highlight);
+  color: var(--text-main);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--bg-card-subtle);
+  border-color: var(--primary-cyan);
+  transform: translateY(-1px);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--primary-cyan);
+  border-color: var(--primary-cyan);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #0369a1;
+  box-shadow: 0 4px 14px var(--primary-cyan-glow);
+}
+
+.speed-control-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.speed-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 9px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.speed-btn.active {
+  background: var(--primary-cyan);
+  color: #ffffff;
+  border-color: var(--primary-cyan);
+}
+
+/* Metric Counter Strip */
+.metrics-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.metric-box {
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.metric-val {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-main);
+  font-family: var(--font-mono);
+}
+
+.metric-lbl {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+/* Right Side: Step Timeline & Inspector */
+.side-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.step-timeline-container {
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.step-timeline-container::-webkit-scrollbar {
+  width: 6px;
+}
+.step-timeline-container::-webkit-scrollbar-thumb {
+  background: var(--border-highlight);
+  border-radius: 4px;
+}
+
+.timeline-step-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.timeline-step-item:hover {
+  background: var(--bg-card-subtle);
+  border-color: var(--border-highlight);
+}
+
+.timeline-step-item.active {
+  background: rgba(2, 132, 199, 0.08);
+  border-color: var(--primary-cyan);
+}
+
+.step-badge-no {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--bg-card-subtle);
+  color: var(--primary-cyan);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-color);
+}
+
+.timeline-step-item.active .step-badge-no {
+  background: var(--primary-cyan);
+  color: #ffffff;
+  border-color: var(--primary-cyan);
+}
+
+.step-content-box strong {
+  display: block;
+  font-size: 13px;
+  color: var(--text-main);
+  margin-bottom: 3px;
+}
+
+.step-content-box p {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Packet Inspector Card */
+.packet-inspector-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: var(--shadow-md);
+}
+
+.inspector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 8px;
+}
+
+.inspector-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary-cyan);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.pdu-badge {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  background: var(--bg-card-subtle);
+  padding: 3px 8px;
+  border-radius: 5px;
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+}
+
+.inspector-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.field-cell {
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.field-lbl {
+  color: var(--text-dim);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.field-val {
+  color: var(--text-main);
+  font-weight: 600;
+  margin-top: 2px;
+  word-break: break-all;
+}
+
+.field-flags {
+  grid-column: span 2;
+}
+
+.flags-tag-list {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.flag-chip {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-dim);
+}
+
+.flag-chip.active-flag {
+  background: var(--primary-cyan);
+  color: #ffffff;
+  border-color: var(--primary-cyan);
+}
+
+/* Tab Panels Content (Comparison, Theory, Exam) */
+.tab-content-panel {
+  display: none;
+}
+
+.tab-content-panel.active {
+  display: block;
+}
+
+/* Comparison Table */
+.comparison-table-wrap {
+  overflow-x: auto;
+  margin-top: 14px;
+}
+
+.netvista-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+
+.netvista-table th,
+.netvista-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: top;
+}
+
+.netvista-table th {
+  background: var(--bg-card-subtle);
+  color: var(--text-main);
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.netvista-table tr:hover td {
+  background: var(--bg-card-subtle);
+}
+
+.netvista-table td strong {
+  color: var(--text-main);
+}
+
+.netvista-table td:nth-child(2) {
+  color: #1e3a8a;
+}
+
+.netvista-table td:nth-child(3) {
+  color: #581c87;
+}
+
+body.dark-theme .netvista-table td:nth-child(2) {
+  color: #c0d8f8;
+}
+
+body.dark-theme .netvista-table td:nth-child(3) {
+  color: #ddd4f7;
+}
+
+/* Theory & Concept Callout Cards */
+.concept-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.concept-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+}
+
+.concept-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.concept-card p {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.concept-card ul {
+  padding-left: 20px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.concept-card li {
+  margin-bottom: 4px;
+}
+
+/* Exam Questions Section */
+.exam-qa-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 22px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-md);
+}
+
+.question-header {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.question-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.question-meta {
+  font-size: 12px;
+  color: var(--accent-amber);
+  font-weight: 600;
+}
+
+.question-prompt {
+  background: var(--bg-card-subtle);
+  border-left: 3px solid var(--primary-cyan);
+  padding: 14px 16px;
+  border-radius: 0 8px 8px 0;
+  color: var(--text-main);
+  font-size: 13.5px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.answer-section {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.answer-section h4 {
+  font-size: 14px;
+  color: var(--primary-cyan);
+  margin: 14px 0 6px;
+}
+
+.code-calc-box {
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-highlight);
+  border-radius: 8px;
+  padding: 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-main);
+  overflow-x: auto;
+  margin: 10px 0;
+}
+
+/* Footer */
+footer {
+  margin-top: 40px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 20px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* Responsive adjustments */
+@media (max-width: 980px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  .network-canvas-scene {
+    height: 340px;
+  }
+  .metrics-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .network-canvas-scene {
+    height: 380px;
+  }
+  .network-node {
+    width: 105px;
+    padding: 8px;
+  }
+  .node-icon-box {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+  .router-node {
+    width: 70px;
+  }
+  .controls-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .playback-buttons {
+    justify-content: center;
+  }
+}
+
+</style>
+</head>
+<body>
+  <div class="container">
+    <!-- Academic Header -->
+    <header>
+      <div class="header-top">
+        <div class="header-badge-group">
+          <div class="academic-badge">
+            <span>⚡ ITUC201: FUNDAMENTALS OF COMPUTER NETWORKS</span>
+          </div>
+          <button id="themeToggleBtn" class="theme-toggle-btn" title="Toggle Light/Dark Theme">
+            <span id="themeIcon">🌙</span> <span id="themeLabel">Dark Theme</span>
+          </button>
+        </div>
+        <div class="assessment-tag">
+          NetVista 3D Individual Assessment · Maximum Marks: 20
+        </div>
+      </div>
+      <h1>Connection-Oriented vs Connectionless Services</h1>
+      <p class="subtitle">
+        An interactive, responsive network visualization demonstrating TCP 3-way handshake, reliable byte-stream transfer, 4-way termination, and UDP independent datagram routing across intermediate network routers.
+      </p>
+    </header>
+
+    <!-- Top Navigation Tabs -->
+    <nav class="tabs-nav" role="tablist">
+      <button id="tabSimTcp" class="nav-tab active" role="tab" aria-selected="true">
+        <span>🔄</span> TCP (Connection-Oriented)
+      </button>
+      <button id="tabSimUdp" class="nav-tab" role="tab" aria-selected="false">
+        <span>⚡</span> UDP (Connectionless)
+      </button>
+      <button id="tabComparison" class="nav-tab" role="tab" aria-selected="false">
+        <span>📊</span> Comparison Matrix
+      </button>
+      <button id="tabTheory" class="nav-tab" role="tab" aria-selected="false">
+        <span>📚</span> Service vs Protocol Deep-Dive
+      </button>
+      <button id="tabExam" class="nav-tab" role="tab" aria-selected="false">
+        <span>🎓</span> Solved Exam & Practice Questions
+      </button>
+    </nav>
+
+    <!-- TAB 1 & 2: Interactive Simulation Panel -->
+    <div id="panelSim" class="tab-content-panel active">
+      <div class="dashboard-grid">
+        <!-- Left: Canvas Scene & Controls -->
+        <main class="panel-card">
+          <div class="panel-title-bar">
+            <div class="panel-title">
+              <span>📡 Interactive Network Topology</span>
+            </div>
+            <div class="scenario-selector-wrap">
+              <label for="scenarioSelect">Scenario:</label>
+              <select id="scenarioSelect" class="scenario-select"></select>
+            </div>
+          </div>
+
+          <!-- Network Canvas -->
+          <div class="network-canvas-scene" id="networkCanvas">
+            <div class="canvas-grid-bg"></div>
+
+            <!-- SVG Link Overlay -->
+            <svg class="network-links-svg" viewBox="0 0 1000 380" preserveAspectRatio="none">
+              <!-- Path via Router 1 (top): Sender (140, 190) -> R1 (500, 91) -> Receiver (860, 190) -->
+              <path id="linkR1" class="link-line" d="M 140 190 Q 320 85 500 91 T 860 190" />
+              <!-- Path via Router 2 (bottom): Sender (140, 190) -> R2 (500, 289) -> Receiver (860, 190) -->
+              <path id="linkR2" class="link-line" d="M 140 190 Q 320 295 500 289 T 860 190" />
+              <!-- Logical Virtual Connection (direct horizontal line for TCP established state) -->
+              <line id="linkVirtual" class="link-line" x1="140" y1="190" x2="860" y2="190" />
+            </svg>
+
+            <!-- Sender Node (Host A) -->
+            <div class="network-node sender-node">
+              <div class="node-icon-box">💻</div>
+              <div class="node-name">Client Host A</div>
+              <div class="node-ip">192.168.1.10:49152</div>
+              <div id="senderSocketState" class="node-socket-state state-closed">CLOSED</div>
+            </div>
+
+            <!-- Core Router 1 (Fast Link) -->
+            <div class="router-node router-1">
+              <div class="router-icon-box">🌐</div>
+              <div class="router-name">Router R1</div>
+              <div class="router-detail">Primary (20ms)</div>
+            </div>
+
+            <!-- Auxiliary Router 2 (Alternate Link) -->
+            <div class="router-node router-2">
+              <div class="router-icon-box">🔀</div>
+              <div class="router-name">Router R2</div>
+              <div class="router-detail">Alternate (45ms)</div>
+            </div>
+
+            <!-- Receiver Node (Host B) -->
+            <div class="network-node receiver-node">
+              <div class="node-icon-box">🖥️</div>
+              <div class="node-name">Server Host B</div>
+              <div class="node-ip">203.0.113.50:80</div>
+              <div id="receiverSocketState" class="node-socket-state state-listen">LISTEN</div>
+            </div>
+
+            <!-- Moving Packet Animation Layer -->
+            <div id="packetAnimLayer" class="packet-anim-layer"></div>
+
+            <!-- Live Status Callout inside canvas -->
+            <div class="scene-live-banner">
+              <span id="bannerBadge" class="banner-badge">INITIALIZING</span>
+              <div id="bannerDesc" class="banner-desc">Ready to start.</div>
+            </div>
+          </div>
+
+          <!-- Controls Bar -->
+          <div class="controls-bar">
+            <div class="playback-buttons">
+              <button id="btnPrev" class="btn" title="Go to previous step (Left Arrow)">⏮ Prev Step</button>
+              <button id="btnNext" class="btn btn-primary" title="Go to next step (Right Arrow)">Next Step ⏭</button>
+              <button id="btnPlay" class="btn" title="Toggle automatic animation (Space)">▶ Play Demo</button>
+              <button id="btnReset" class="btn" title="Reset simulation (R)">↺ Reset</button>
+            </div>
+
+            <div class="speed-control-group">
+              <span>Speed:</span>
+              <button class="speed-btn" data-speed="0.75">0.75x</button>
+              <button class="speed-btn active" data-speed="1.0">1.0x</button>
+              <button class="speed-btn" data-speed="1.5">1.5x</button>
+            </div>
+          </div>
+
+          <!-- Real-Time Metrics Strip -->
+          <div class="metrics-strip">
+            <div class="metric-box">
+              <div id="metricStep" class="metric-val">0 / 0</div>
+              <div class="metric-lbl">Step Progress</div>
+            </div>
+            <div class="metric-box">
+              <div id="metricDelay" class="metric-val">1 RTT</div>
+              <div class="metric-lbl">Connection Overhead</div>
+            </div>
+            <div class="metric-box">
+              <div id="metricHeader" class="metric-val">20–60 B</div>
+              <div class="metric-lbl">Transport Header</div>
+            </div>
+            <div class="metric-box">
+              <div id="metricState" class="metric-val">Closed</div>
+              <div class="metric-lbl">End-to-End State</div>
+            </div>
+          </div>
+        </main>
+
+        <!-- Right: Clickable Timeline & Packet Inspector -->
+        <aside class="side-stack">
+          <!-- Step Timeline -->
+          <div class="panel-card" style="padding: 16px;">
+            <div class="panel-title" style="font-size: 14px; margin-bottom: 10px;">
+              <span>📜 Step-by-Step Sequence</span>
+            </div>
+            <div id="stepTimeline" class="step-timeline-container"></div>
+          </div>
+
+          <!-- Packet Inspector -->
+          <div class="packet-inspector-box">
+            <div class="inspector-header">
+              <div class="inspector-title">🔍 PDU Packet Inspector</div>
+              <div id="inspPduType" class="pdu-badge">Segment</div>
+            </div>
+            <div class="inspector-grid">
+              <div class="field-cell">
+                <div class="field-lbl">Protocol</div>
+                <div id="inspProtocol" class="field-val">TCP</div>
+              </div>
+              <div class="field-cell">
+                <div class="field-lbl">Src / Dst Port</div>
+                <div class="field-val"><span id="inspSrcPort">--</span> → <span id="inspDstPort">--</span></div>
+              </div>
+              <div class="field-cell">
+                <div class="field-lbl">Sequence No. (Seq)</div>
+                <div id="inspSeq" class="field-val">--</div>
+              </div>
+              <div class="field-cell">
+                <div class="field-lbl">Ack No. (Ack)</div>
+                <div id="inspAck" class="field-val">--</div>
+              </div>
+              <div class="field-cell">
+                <div class="field-lbl">Header Length</div>
+                <div id="inspHdrLen" class="field-val">--</div>
+              </div>
+              <div class="field-cell">
+                <div class="field-lbl">Payload Length</div>
+                <div id="inspPayloadLen" class="field-val">--</div>
+              </div>
+              <div class="field-cell field-flags">
+                <div class="field-lbl">Control Flags</div>
+                <div id="inspFlagsList" class="flags-tag-list"></div>
+              </div>
+              <div class="field-cell field-flags">
+                <div class="field-lbl">Application Payload</div>
+                <div id="inspPayload" class="field-val" style="font-size: 10px; color: #94a3b8;">--</div>
+              </div>
+              <div class="field-cell field-flags">
+                <div class="field-lbl">Header Checksum</div>
+                <div id="inspChecksum" class="field-val" style="color: #38ef7d;">--</div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- TAB 3: Comparison Matrix -->
+    <div id="panelComparison" class="tab-content-panel">
+      <section class="panel-card">
+        <div class="panel-title-bar">
+          <div class="panel-title">
+            <span>📊 Comprehensive Technical Comparison: Connection-Oriented vs Connectionless Services</span>
+          </div>
+        </div>
+        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">
+          This matrix synthesizes core differences between connection-oriented (e.g., TCP) and connectionless (e.g., UDP) services across 10 essential networking dimensions.
+        </p>
+
+        <div class="comparison-table-wrap">
+          <table class="netvista-table">
+            <thead>
+              <tr>
+                <th style="width: 18%;">Dimension / Metric</th>
+                <th style="width: 41%;">Connection-Oriented Service (e.g., TCP)</th>
+                <th style="width: 41%;">Connectionless Service (e.g., UDP)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>1. Operational Paradigm</strong></td>
+                <td>Three distinct sequential phases: <strong>Connection Establishment</strong>, <strong>Data Transfer</strong>, and <strong>Connection Release</strong>.</td>
+                <td>Single-phase operation: Each datagram is transmitted independently without prior negotiation or session state.</td>
+              </tr>
+              <tr>
+                <td><strong>2. Handshake & Overhead</strong></td>
+                <td>Requires a <strong>3-Way Handshake</strong> (SYN → SYN-ACK → ACK) incurring at least 1 Round-Trip Time (RTT) initial latency.</td>
+                <td><strong>0 RTT setup latency</strong>. Data can be transmitted immediately upon application request.</td>
+              </tr>
+              <tr>
+                <td><strong>3. Delivery Guarantee</strong></td>
+                <td><strong>Reliable Delivery:</strong> Positive acknowledgements (ACK), automatic retransmission (ARQ), duplicate filtering, and checksum integrity.</td>
+                <td><strong>Best-Effort Delivery:</strong> Unreliable; packets may be lost, duplicated, or delayed without transport-layer notification.</td>
+              </tr>
+              <tr>
+                <td><strong>4. Packet Ordering</strong></td>
+                <td><strong>Strictly Ordered:</strong> Sequence numbers ensure segments are reassembled and delivered to the application in the exact order transmitted.</td>
+                <td><strong>Unordered:</strong> Datagrams may follow diverse physical routes and arrive at the destination out of order.</td>
+              </tr>
+              <tr>
+                <td><strong>5. Flow & Congestion Control</strong></td>
+                <td>Features dynamic sliding-window <strong>flow control</strong> (advertised window <code>rwnd</code>) and <strong>congestion control</strong> (slow start, congestion avoidance, <code>cwnd</code>).</td>
+                <td><strong>No built-in flow or congestion control</strong>. Sender transmits at application rate, irrespective of network or receiver capacity.</td>
+              </tr>
+              <tr>
+                <td><strong>6. Transport Header Size</strong></td>
+                <td><strong>20 to 60 bytes</strong> (20 bytes baseline header + optional fields such as MSS, Window Scale, Timestamps, SACK).</td>
+                <td><strong>8 bytes fixed</strong> (Source Port [16b], Destination Port [16b], Length [16b], Checksum [16b]). Minimal overhead.</td>
+              </tr>
+              <tr>
+                <td><strong>7. State Maintenance</strong></td>
+                <td><strong>Stateful:</strong> Both endpoints maintain Transmission Control Blocks (TCBs) tracking sequence numbers, timers, buffers, and socket states.</td>
+                <td><strong>Stateless:</strong> Neither endpoints nor intermediate routers maintain persistent session state for datagram flows.</td>
+              </tr>
+              <tr>
+                <td><strong>8. Packet Loss Handling</strong></td>
+                <td>Sender starts Retransmission Timeout (RTO) or triggers Fast Retransmit on 3 duplicate ACKs. Loss is completely repaired.</td>
+                <td>Transport layer takes <strong>no action</strong> upon packet drop. Any recovery logic must be implemented in the application layer.</td>
+              </tr>
+              <tr>
+                <td><strong>9. Transmission Character</strong></td>
+                <td><strong>Continuous Byte Stream:</strong> Treats data as an unstructured stream of bytes; message boundaries are not preserved across segments.</td>
+                <td><strong>Discrete Datagrams:</strong> Preserves discrete message boundaries (atomic packet boundaries intact).</td>
+              </tr>
+              <tr>
+                <td><strong>10. Canonical Applications</strong></td>
+                <td>Web browsing (HTTP/HTTPS), File Transfer (FTP/SFTP), Secure Shell (SSH), Remote Desktop (RDP), Email (SMTP/IMAP).</td>
+                <td>DNS resolution, Live Audio/Video Streaming (VoIP, RTP, Zoom), Real-Time Online Gaming, DHCP, SNMP.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- TAB 4: Theory Deep-Dive -->
+    <div id="panelTheory" class="tab-content-panel">
+      <section class="panel-card">
+        <div class="panel-title-bar">
+          <div class="panel-title">
+            <span>📚 Essential Theory: Service vs Protocol Distinction</span>
+          </div>
+        </div>
+        <p style="color: var(--text-muted); font-size: 13px; line-height: 1.6;">
+          One of the foundational concepts evaluated in ITUC201 is the rigorous distinction between an abstract <em>Service</em> and a concrete <em>Protocol</em>. In networked architectures, confusing these two leads to conceptual errors in university examinations.
+        </p>
+
+        <div class="concept-grid">
+          <div class="concept-card">
+            <h3><span>🔲</span> The Concept of a Service</h3>
+            <p>
+              A <strong>Service</strong> is an abstract set of operations and capabilities that an underlying layer provides to the adjacent upper layer (e.g., what the Transport Layer offers to the Application Layer).
+            </p>
+            <ul>
+              <li><strong>Interface Direction:</strong> Vertical boundary between adjacent layers within the same host.</li>
+              <li><strong>Definition:</strong> Specifies <em>what</em> capabilities are provided, not <em>how</em> they are implemented.</li>
+              <li><strong>Primitives:</strong> Formal service primitives specify operations: <code>LISTEN</code>, <code>CONNECT</code>, <code>SEND</code>, <code>RECEIVE</code>, <code>DISCONNECT</code>.</li>
+              <li><strong>Implementation Invariance:</strong> An application requests a reliable connection-oriented service regardless of whether the physical link is optical fibre, Ethernet, or Wi-Fi.</li>
+            </ul>
+          </div>
+
+          <div class="concept-card">
+            <h3><span>🔗</span> The Concept of a Protocol</h3>
+            <p>
+              A <strong>Protocol</strong> is a concrete set of formal syntax, semantic rules, and timing conventions governing communication between two peer entities across a network.
+            </p>
+            <ul>
+              <li><strong>Interface Direction:</strong> Horizontal exchange between peer layers on different machines.</li>
+              <li><strong>Definition:</strong> Specifies <em>how</em> the service is implemented via packet formats, bit fields, state machines, and timers.</li>
+              <li><strong>Examples:</strong> TCP (RFC 793 / RFC 9293) and UDP (RFC 768) are protocols implementing connection-oriented and connectionless services, respectively.</li>
+              <li><strong>Peer Exchange:</strong> Protocols exchange Protocol Data Units (PDUs)—Segments in TCP, Datagrams in UDP, and Packets in IP.</li>
+            </ul>
+          </div>
+
+          <div class="concept-card">
+            <h3><span>⚙️</span> The 3 Phases of Connection-Oriented Service</h3>
+            <p>
+              Every connection-oriented service follows a deterministic three-phase lifecycle:
+            </p>
+            <ul>
+              <li><strong>Phase 1: Connection Setup</strong> — Parameters, buffer allocations, and Initial Sequence Numbers (ISNs) are agreed upon via a three-way handshake.</li>
+              <li><strong>Phase 2: Data Transfer</strong> — Bidirectional data stream flows with sequence number tracking, flow control, and error correction.</li>
+              <li><strong>Phase 3: Connection Release</strong> — Resources are released in an orderly manner (using a symmetric 4-way termination with <code>TIME_WAIT</code> state).</li>
+            </ul>
+          </div>
+
+          <div class="concept-card">
+            <h3><span>🚀</span> The Datagram Model of Connectionless Service</h3>
+            <p>
+              In a connectionless service, the network operates analogously to a postal letter system:
+            </p>
+            <ul>
+              <li><strong>Autonomous Addressing:</strong> Every packet contains the full source and destination IP/port addresses.</li>
+              <li><strong>Independent Routing:</strong> Routers make dynamic forwarding decisions per packet; packets can travel across different physical routes.</li>
+              <li><strong>Zero State:</strong> Routers hold no per-flow state, making connectionless communication resilient to intermediate node crashes.</li>
+              <li><strong>Low Latency:</strong> Immediate transmission with zero round-trip handshake penalty.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- TAB 5: Solved Exam Questions -->
+    <div id="panelExam" class="tab-content-panel">
+      <!-- Solved Question 1 -->
+      <article class="exam-qa-box">
+        <div class="question-header">
+          <div class="question-title">Exam Question 1: Fully Solved University Examination Problem</div>
+          <div class="question-meta">[ITUC201 University Final Examination Standard · 10 Marks]</div>
+        </div>
+
+        <div class="question-prompt">
+          <strong>Question:</strong><br>
+          A client host (Host A) establishes a connection-oriented TCP connection with a web server (Host B) to download a 100-byte web page, and subsequently terminates the connection gracefully.<br>
+          (a) Trace the complete sequence of TCP segments exchanged from setup to teardown, specifying the Sequence Number (Seq), Acknowledgment Number (Ack), and active TCP Flags for every segment, given that Host A selects Initial Sequence Number (ISN) = 100 and Host B selects ISN = 300. Assume the HTTP request is 40 bytes and the HTTP response is 100 bytes.<br>
+          (b) Justify why TCP requires a 3-way handshake rather than a 2-way handshake.<br>
+          (c) Distinguish between connection-oriented and connectionless services with respect to packet routing, state information, and header overhead.
+        </div>
+
+        <div class="answer-section">
+          <h4>(a) Step-by-Step Segment Exchange Trace (Worked Solution)</h4>
+          <p>
+            In TCP, the SYN and FIN control flags consume exactly 1 sequence number each (phantom byte), while pure ACK segments carrying no data consume 0 sequence numbers. Application data bytes increment the sequence number by the byte count.
+          </p>
+
+          <div class="code-calc-box">
+PHASE 1: CONNECTION ESTABLISHMENT (3-Way Handshake)
+  Segment 1 [A -> B]: SYN=1, ACK=0 | Seq = 100, Ack = 0   (Client ISN = 100, consumes 1 seq)
+  Segment 2 [B -> A]: SYN=1, ACK=1 | Seq = 300, Ack = 101 (Server ISN = 300, Ack = 100 + 1)
+  Segment 3 [A -> B]: SYN=0, ACK=1 | Seq = 101, Ack = 301 (Handshake ACK, Seq = 101, Ack = 300 + 1)
+  --> Connection State: Both Host A and Host B enter ESTABLISHED state.
+
+PHASE 2: DATA TRANSFER (Bidirectional Exchange)
+  Segment 4 [A -> B]: ACK=1, PSH=1 | Seq = 101, Ack = 301, Data = 40 Bytes (HTTP Request)
+                      Bytes transmitted: 101 to 140.
+  Segment 5 [B -> A]: ACK=1, PSH=1 | Seq = 301, Ack = 141, Data = 100 Bytes (HTTP Response)
+                      Server confirms bytes up to 140 (Ack = 141). Transmits bytes 301 to 400.
+  Segment 6 [A -> B]: ACK=1, PSH=0 | Seq = 141, Ack = 401, Data = 0 Bytes
+                      Client acknowledges all 100 bytes of response (Ack = 301 + 100 = 401).
+
+PHASE 3: CONNECTION RELEASE (4-Way Termination)
+  Segment 7 [A -> B]: FIN=1, ACK=1 | Seq = 141, Ack = 401 (Host A Active Close, consumes 1 seq)
+                      Host A enters FIN_WAIT_1.
+  Segment 8 [B -> A]: ACK=1        | Seq = 401, Ack = 142 (Host B acknowledges FIN: 141 + 1 = 142)
+                      Host B enters CLOSE_WAIT; Host A enters FIN_WAIT_2.
+  Segment 9 [B -> A]: FIN=1, ACK=1 | Seq = 401, Ack = 142 (Host B initiates its own close)
+                      Host B enters LAST_ACK.
+  Segment 10 [A -> B]: ACK=1       | Seq = 142, Ack = 402 (Host A acknowledges FIN: 401 + 1 = 402)
+                      Host A enters TIME_WAIT (2 MSL); Host B enters CLOSED.
+          </div>
+
+          <h4>(b) Justification for 3-Way Handshake vs 2-Way Handshake</h4>
+          <p>
+            A 2-way handshake is insufficient in an unreliable packet-switched network where duplicate or delayed packets can exist. Consider the following failure scenario:
+          </p>
+          <ul style="padding-left: 20px; line-height: 1.6; margin: 6px 0 10px;">
+            <li>If Host A sends a SYN that is delayed in transit, Host A may time out and abandon the attempt.</li>
+            <li>If that old, duplicate SYN eventually arrives at Host B hours later, under a 2-way handshake, Host B would immediately allocate server buffers and enter <code>ESTABLISHED</code> state upon transmitting its response.</li>
+            <li>Host A, receiving the unexpected response, simply ignores it. Host B is left holding a half-open connection with leaked system memory.</li>
+            <li>The <strong>3-way handshake prevents phantom connections</strong>: Host B is only committed once Host A confirms receipt via the third segment (ACK), verifying that the request is fresh and active.</li>
+          </ul>
+
+          <h4>(c) Technical Comparison Table (Routing, State, Overhead)</h4>
+          <table class="netvista-table" style="margin-top: 8px;">
+            <thead>
+              <tr>
+                <th>Criteria</th>
+                <th>Connection-Oriented Service (TCP)</th>
+                <th>Connectionless Service (UDP)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Packet Routing</strong></td>
+                <td>Segments belong to a single logical session; in virtual circuits they follow a predetermined path, in TCP/IP they travel through routers with end-to-end sequencing.</td>
+                <td>Every datagram is routed completely independently. Successive packets may take entirely different physical routes and arrive out of order.</td>
+              </tr>
+              <tr>
+                <td><strong>State Information</strong></td>
+                <td>Both endpoints maintain stateful Transmission Control Blocks (TCB) tracking sequence numbers, sliding windows, timers, and socket states.</td>
+                <td>Stateless. Neither end system nor intermediate routers maintain ongoing session records.</td>
+              </tr>
+              <tr>
+                <td><strong>Header Overhead</strong></td>
+                <td>20 to 60 bytes per segment (contains sequence numbers, ACK numbers, 6 control flags, window size, options).</td>
+                <td>8 bytes fixed per datagram (Source Port, Destination Port, Length, Checksum).</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <!-- Practice Question 2 -->
+      <article class="exam-qa-box">
+        <div class="question-header">
+          <div class="question-title">Practice Question 2: Transport Protocol Selection for Real-Time Multimedia</div>
+          <div class="question-meta">[Concept Reinforcement & Numerical Analysis · 5 Marks]</div>
+        </div>
+
+        <div class="question-prompt">
+          <strong>Question:</strong><br>
+          A real-time Voice-over-IP (VoIP) application generates 160-byte audio payload samples every 20 ms. Compare whether a connection-oriented service (TCP) or a connectionless service (UDP) is superior for this scenario. Include a quantitative header overhead calculation and discuss the impact of packet retransmission.
+        </div>
+
+        <div class="answer-section">
+          <h4>Solution & Analysis:</h4>
+          <p><strong>1. Quantitative Header Overhead Comparison:</strong></p>
+          <div class="code-calc-box">
+Given Application Payload = 160 bytes
+
+Case A: Connection-Oriented Service (TCP, minimum 20-byte header)
+  Total Packet Size = 160 B + 20 B = 180 bytes
+  Transport Header Overhead = (20 / 180) * 100% = 11.11%
+
+Case B: Connectionless Service (UDP, fixed 8-byte header)
+  Total Packet Size = 160 B + 8 B = 168 bytes
+  Transport Header Overhead = (8 / 168) * 100% = 4.76%
+
+Result: UDP reduces transport-layer protocol overhead by over 57% relative to TCP.
+          </div>
+
+          <p><strong>2. Latency, Jitter, and Retransmission Impact:</strong></p>
+          <p>
+            In human conversational speech, end-to-end one-way delay must remain below <strong>150 ms</strong> (ITU-T G.114 standard). If TCP is utilized:
+          </p>
+          <ul style="padding-left: 20px; line-height: 1.6; margin: 6px 0 10px;">
+            <li>When an audio packet is dropped, TCP halts delivery of subsequent packets (Head-of-Line Blocking) while waiting for retransmission.</li>
+            <li>By the time the retransmitted packet arrives (at least 1 RTT later), the playback deadline has already passed, rendering the audio data useless.</li>
+            <li>UDP drops corrupt or lost packets gracefully; human ear codecs can interpolate minor loss (Packet Loss Concealment), preserving real-time conversational flow without delay spikes.</li>
+          </ul>
+          <p><strong>Conclusion:</strong> Connectionless service (UDP) is emphatically superior for real-time interactive audio/video.</p>
+        </div>
+      </article>
+
+      <!-- Practice Question 3 -->
+      <article class="exam-qa-box">
+        <div class="question-header">
+          <div class="question-title">Practice Question 3: The Role of the TIME_WAIT State in Connection Release</div>
+          <div class="question-meta">[State Machine Analysis · 5 Marks]</div>
+        </div>
+
+        <div class="question-prompt">
+          <strong>Question:</strong><br>
+          During graceful connection release in a connection-oriented service (TCP), why does the active-closing endpoint enter the <code>TIME_WAIT</code> state for a duration of 2 MSL (Maximum Segment Lifetime), rather than transitioning directly to <code>CLOSED</code>?
+        </div>
+
+        <div class="answer-section">
+          <h4>Solution & Justification:</h4>
+          <p>The active closer must remain in the <code>TIME_WAIT</code> state for 2 MSL (typically 1 to 2 minutes) for two crucial architectural reasons:</p>
+          
+          <p><strong>Reason 1: Reliable Delivery of the Final ACK (Segment 10)</strong></p>
+          <p>
+            If the client's final ACK segment is lost in the network, the server will time out and retransmit its FIN segment. If the client had immediately closed its socket:
+          </p>
+          <ul style="padding-left: 20px; line-height: 1.6; margin: 4px 0 8px;">
+            <li>Upon receiving the retransmitted FIN, the client would respond with a <code>RST</code> (Reset) segment because the port is closed.</li>
+            <li>The server would interpret this as an abnormal, aborted closure rather than an orderly teardown.</li>
+            <li>Remaining in <code>TIME_WAIT</code> allows the client to re-acknowledge any retransmitted FIN.</li>
+          </ul>
+
+          <p><strong>Reason 2: Preventing Old Duplicate Packets from Corrupting New Connections</strong></p>
+          <p>
+            In IP networks, packets may be delayed in routing loops. If a new connection were immediately opened on the identical 4-tuple (Source IP, Source Port, Dest IP, Dest Port), an old duplicate packet from the previous session might arrive and be accepted as valid new data.
+          </p>
+          <p>
+            By waiting <strong>2 MSL</strong> (1 MSL for the forward direction + 1 MSL for the return direction), the network guarantees that all duplicate packets from the defunct session have expired and dissipated before the socket pair can be reused.
+          </p>
+        </div>
+      </article>
+    </div>
+
+    <!-- Academic Footer -->
+    <footer>
+      <p>
+        NetVista 3D: Individual Performance-Based Assessment · ITUC201: Fundamentals of Computer Networks<br>
+        Topic: Connection-Oriented and Connectionless Services · Student ID: 25CS074<br>
+        Educational simulation only. Packet animations are illustrative state representations, not live-network packet captures.<br>
+        AI assistance and external references acknowledged in compliance with institutional academic integrity guidelines.
+      </p>
+    </footer>
+  </div>
+
+  <script>
+/**
+ * NetVista 3D: Connection-Oriented vs Connectionless Services
+ * Course: ITUC201 - Fundamentals of Computer Networks
+ * Author: Student 25CS074
+ */
+
+(() => {
+  // --- Scenarios Configuration ---
+  const SCENARIOS = {
+    tcp: {
+      standard: {
+        name: "Complete TCP Lifecycle (Handshake, Data, 4-Way Close)",
+        steps: [
+          {
+            label: "1. Client sends SYN (Connection Request)",
+            desc: "Active Open initiated by Client. Proposes Initial Sequence Number (ISN).",
+            note: "The client sends a TCP segment with SYN=1, ACK=0, Seq=100. It enters SYN_SENT state. No application payload is transferred during the handshake.",
+            type: "pkt-syn",
+            direction: "to-receiver",
+            route: "r1",
+            senderState: "SYN_SENT",
+            receiverState: "LISTEN",
+            inspector: {
+              protocol: "TCP",
+              srcPort: "49152",
+              dstPort: "80 (HTTP)",
+              seqNum: "100",
+              ackNum: "0",
+              flags: ["SYN"],
+              headerLen: "20 Bytes",
+              payloadLen: "0 Bytes",
+              payload: "None (Handshake SYN)",
+              checksum: "0x7A4C (Valid)"
+            }
+          },
+          {
+            label: "2. Server replies with SYN-ACK",
+            desc: "Server acknowledges client's SYN and synchronizes its own sequence number.",
+            note: "The server acknowledges Client ISN (Ack=101) and picks its own ISN (Seq=300). Server transitions from LISTEN to SYN_RCVD state. Half-open connection allocated.",
+            type: "pkt-syn-ack",
+            direction: "to-sender",
+            route: "r1",
+            senderState: "SYN_SENT",
+            receiverState: "SYN_RCVD",
+            inspector: {
+              protocol: "TCP",
+              srcPort: "80 (HTTP)",
+              dstPort: "49152",
+              seqNum: "300",
+              ackNum: "101 (ISN_c + 1)",
+              flags: ["SYN", "ACK"],
+              headerLen: "20 Bytes",
+              payloadLen: "0 Bytes",
+              payload: "None (Handshake SYN-ACK)",
+              checksum: "0x3F88 (Valid)"
+            }
+          },
+          {
+            label: "3. Client sends ACK (Connection Established)",
+            desc: "Three-way handshake complete. Full-duplex connection established.",
+            note: "Client acknowledges Server ISN (Ack=301) with Seq=101. Both endpoints now reach ESTABLISHED state. Both ends have verified bidirectional reachability.",
+            type: "pkt-ack",
+            direction: "to-receiver",
+            route: "r1",
+            senderState: "ESTABLISHED",
+            receiverState: "ESTABLISHED",
+            inspector: {
+              protocol: "TCP",
+              srcPort: "49152",
+              dstPort: "80 (HTTP)",
+              seqNum: "101",
+              ackNum: "301 (ISN_s + 1)",
+              flags: ["ACK"],
+              headerLen: "20 Bytes",
+              payloadLen: "0 Bytes",
+              payload: "None (Final Handshake ACK)",
+              checksum: "0x6E21 (Valid)"
+            }
+          },
+          {
+            label: "4. Client sends HTTP Request Data (100 Bytes)",
+            desc: "Client transmits application byte stream over the active connection.",
+            note: "Client sends HTTP request 'GET /index.html' (100 bytes) with Seq=101..200. PSH flag pushed. Receiver buffers and delivers stream in order to application.",
+            type: "pkt-data",
+            direction: "to-receiver",
+            route: "r1",
+            senderState: "ESTABLISHED",
+            receiverState: "ESTABLISHED",
+            inspector: {
+              protocol: "TCP",
+              srcPort: "49152",
+              dstPort: "80 (HTTP)",
+              seqNum: "101",
+              ackNum: "301",
+              flags: ["ACK", "PSH"],
+              headerLen: "20 Bytes",
+              payloadLen: "100 Bytes",
+              payload: "GET /index.html HTTP/1.1\\r\\nHost: example.edu...",
+              checksum: "0x91DC (Valid)"
+            }
+          },
+          {
+            label: "5. Server returns Cumulative ACK + Response Data",
+            desc: "Server acknowledges client data and replies with HTTP 200 OK (250 Bytes).",
+            note: "Server sends Ack=201 (expecting byte 201 next) along with 250 bytes of response data (Seq=301..550). Demonstrates full-duplex cumulative acknowledgement.",
+            type: "pkt-data",
+            direction: "to-sender",
+            route: "r1",
+            senderState: "ESTABLISHED",
+            receiverState: "ESTABLISHED",
+            inspector: {
+              protocol: "TCP",
+              srcPort: "80 (HTTP)",
+              dstPort: "49152",
+              seqNum: "301",
+              ackNum: "201",
+              flags: ["ACK", "PSH"],
+              headerLen: "20 Bytes",
+              payloadLen: "250 Bytes",
+              payload: "HTTP/1.1 200 OK\\r\\nContent-Type: text/html...",
+              checksum: "0x12FE (Valid)"
+            }
+          },
+          {
+            label: "6. Client acknowledges Response Data",
+            desc: "Client acknowledges all 250 bytes of Server data.",
+            note: "Client sends Ack=551 with Seq=201. Both endpoints have successfully completed reliable data exchange. Flow control window updated.",
+            type: "pkt-ack",
+            direction: "to-receiver",
+            route: "r1",
+            senderState: "ESTABLISHED",
+            receiverState: "ESTABLISHED",
+            inspector: {
+              protocol: "TCP",
+              srcPort: "49152",
+              dstPort: "80 (HTTP)",
+              seqNum: "201",
+              ackNum: "551",
+              flags: ["ACK"],
+              headerLen: "20 Bytes",
+              payloadLen: "0 Bytes",
+              payload: "None (Pure ACK for Data)",
+              checksum: "0x4B3A (Valid)"
+            }
+          },
+          {
+            label: "7. Client initiates Close with FIN",
+            desc: "Active close: Client announces it has no more data to transmit.",
+            note: "Client sends FIN segment with Seq=201, Ack=551. Client transitions to FIN_WAIT_1. The client can still receive incoming data from server (Half-closed state).",
+            type: "pkt-fin",
+            direction: "to-receiver",
+            route: "r1",
+            senderState: "FIN_WAIT_1",
+            receiverState: "ESTABLISHED",
+            inspector: {
+              protocol: "TCP",
+              srcPort: "49152",
+              dstPort: "80 (HTTP)",
+              seqNum: "201",
+              ackNum: "551",
+              flags: ["FIN", "ACK"],
+              headerLen: "20 Bytes",
+              payloadLen: "0 Bytes",
+              payload: "None (Client FIN)",
+              checksum: "0x55FA (Valid)"
+            }
+          },
+          {
+            label: "8. Server sends ACK for Client FIN",
+            desc: "Passive close: Server acknowledges Client's termination request.",
+            note: "Server sends Ack=202. Server enters CLOSE_WAIT state. Client receives this ACK and enters FIN_WAIT_2 state, waiting for Server's own FIN.",
+            type: "pkt-ack",
+            direction: "to-sender",
+            route: "r1",
+            senderState: "FIN_WAIT_2",
+            receiverState: "CLOSE_WAIT",
+            inspector: {
+              protocol: "TCP",
+              srcPort: "80 (HTTP)",
+              dstPort: "49152",
+              seqNum: "551",
+              ackNum: "202",
+              flags: ["ACK"],
+              headerLen: "20 Bytes",
+              payloadLen: "0 Bytes",
+              payload: "None (ACK for Client FIN)",
+              checksum: "0x8D12 (Valid)"
+            }
+          },
+          {
+            label: "9. Server completes its tasks & sends FIN",
+            desc: "Server finishes sending pending data and announces closure.",
+            note: "Server sends its own FIN segment with Seq=551, Ack=202. Server enters LAST_ACK state, waiting for the final acknowledgement from Client.",
+            type: "pkt-fin",
+            direction: "to-sender",
+            route: "r1",
+            senderState: "FIN_WAIT_2",
+            receiverState: "LAST_ACK",
+            inspector: {
+              protocol: "TCP",
+              srcPort: "80 (HTTP)",
+              dstPort: "49152",
+              seqNum: "551",
+              ackNum: "202",
+              flags: ["FIN", "ACK"],
+              headerLen: "20 Bytes",
+              payloadLen: "0 Bytes",
+              payload: "None (Server FIN)",
+              checksum: "0xA2BC (Valid)"
+            }
+          },
+          {
+            label: "10. Client sends final ACK & enters TIME_WAIT",
+            desc: "Orderly four-way release concluded. TIME_WAIT ensures graceful closure.",
+            note: "Client sends final Ack=552, Seq=202. Server enters CLOSED immediately upon receipt. Client enters TIME_WAIT (2MSL duration) to handle any delayed duplicate packets before finally entering CLOSED.",
+            type: "pkt-ack",
+            direction: "to-receiver",
+            route: "r1",
+            senderState: "TIME_WAIT (-> CLOSED)",
+            receiverState: "CLOSED",
+            inspector: {
+              protocol: "TCP",
+              srcPort: "49152",
+              dstPort: "80 (HTTP)",
+              seqNum: "202",
+              ackNum: "552",
+              flags: ["ACK"],
+              headerLen: "20 Bytes",
+              payloadLen: "0 Bytes",
+              payload: "None (Final Close ACK)",
+              checksum: "0x1123 (Valid)"
+            }
+          }
+        ]
+      },
+      handshake: {
+        name: "TCP 3-Way Handshake Deep Dive",
+        steps: [
+          {
+            label: "1. Client SYN (ISN_c = 5000)",
+            desc: "Client initiates active open, advertising its initial sequence number.",
+            note: "SYN consumes 1 sequence number. Client socket state transitions from CLOSED to SYN_SENT.",
+            type: "pkt-syn",
+            direction: "to-receiver",
+            route: "r1",
+            senderState: "SYN_SENT",
+            receiverState: "LISTEN",
+            inspector: {
+              protocol: "TCP",
+              srcPort: "51000",
+              dstPort: "443 (HTTPS)",
+              seqNum: "5000",
+              ackNum: "0",
+              flags: ["SYN"],
+              headerLen: "20 Bytes",
+              payloadLen: "0 Bytes",
+              payload: "None (SYN packet)",
+              checksum: "0xB411 (Valid)"
+            }
+          },
+          {
+            label: "2. Server SYN-ACK (ISN_s = 8000, Ack = 5001)",
+            desc: "Server acknowledges client sequence and proposes its own.",
+            note: "Server validates client SYN and increments client sequence by 1 (Ack = 5001). Server transitions to SYN_RCVD.",
+            type: "pkt-syn-ack",
+            direction: "to-sender",
+            route: "r1",
+            senderState: "SYN_SENT",
+            receiverState: "SYN_RCVD",
+            inspector: {
+              protocol: "TCP",
+              srcPort: "443 (HTTPS)",
+              dstPort: "51000",
+              seqNum: "8000",
+              ackNum: "5001",
+              flags: ["SYN", "ACK"],
+              headerLen: "20 Bytes",
+              payloadLen: "0 Bytes",
+              payload: "None (SYN-ACK packet)",
+              checksum: "0x98FF (Valid)"
+            }
+          },
+          {
+            label: "3. Client ACK (Seq = 5001, Ack = 8001)",
+            desc: "Client confirms server sequence. Handshake complete.",
+            note: "Client enters ESTABLISHED. Server enters ESTABLISHED upon arrival. Total delay = 1 RTT.",
+            type: "pkt-ack",
+            direction: "to-receiver",
+            route: "r1",
+            senderState: "ESTABLISHED",
+            receiverState: "ESTABLISHED",
+            inspector: {
+              protocol: "TCP",
+              srcPort: "51000",
+              dstPort: "443 (HTTPS)",
+              seqNum: "5001",
+              ackNum: "8001",
+              flags: ["ACK"],
+              headerLen: "20 Bytes",
+              payloadLen: "0 Bytes",
+              payload: "None (ACK packet)",
+              checksum: "0xCC22 (Valid)"
+            }
+          }
+        ]
+      },
+      retransmit: {
+        name: "TCP Packet Loss & Retransmission Recovery",
+        steps: [
+          {
+            label: "1. Connection Established & Data 1 Sent",
+            desc: "Client sends Segment 1 (Seq 1001..1100, 100 Bytes).",
+            note: "Connection is in ESTABLISHED state. Client sends Segment 1 and starts retransmission timer (RTO).",
+            type: "pkt-data",
+            direction: "to-receiver",
+            route: "r1",
+            senderState: "ESTABLISHED",
+            receiverState: "ESTABLISHED",
+            inspector: {
+              protocol: "TCP",
+              srcPort: "49152",
+              dstPort: "80",
+              seqNum: "1001",
+              ackNum: "500",
+              flags: ["ACK", "PSH"],
+              headerLen: "20 Bytes",
+              payloadLen: "100 Bytes",
+              payload: "Application Payload #1 (100 B)",
+              checksum: "0x3456 (Valid)"
+            }
+          },
+          {
+            label: "2. Server receives Segment 1 & replies with ACK 1101",
+            desc: "Cumulative ACK confirms receipt of all bytes up to 1100.",
+            note: "Server sends ACK with Ack=1101. Client cancels timer for Segment 1.",
+            type: "pkt-ack",
+            direction: "to-sender",
+            route: "r1",
+            senderState: "ESTABLISHED",
+            receiverState: "ESTABLISHED",
+            inspector: {
+              protocol: "TCP",
+              srcPort: "80",
+              dstPort: "49152",
+              seqNum: "500",
+              ackNum: "1101",
+              flags: ["ACK"],
+              headerLen: "20 Bytes",
+              payloadLen: "0 Bytes",
+              payload: "None (ACK for Seg 1)",
+              checksum: "0x7890 (Valid)"
+            }
+          },
+          {
+            label: "3. Client sends Segment 2 (Seq 1101..1200) - Packet Lost!",
+            desc: "Segment 2 encounters router buffer overflow and is dropped.",
+            note: "Router R1 drops the packet due to congestion. Server never receives Segment 2. Client is waiting for ACK.",
+            type: "pkt-dropped",
+            direction: "to-receiver",
+            route: "r1-drop",
+            senderState: "ESTABLISHED",
+            receiverState: "ESTABLISHED",
+            inspector: {
+              protocol: "TCP",
+              srcPort: "49152",
+              dstPort: "80",
+              seqNum: "1101",
+              ackNum: "500",
+              flags: ["ACK", "PSH"],
+              headerLen: "20 Bytes",
+              payloadLen: "100 Bytes",
+              payload: "Application Payload #2 [DROPPED]",
+              checksum: "0xABCD (Valid)"
+            }
+          },
+          {
+            label: "4. Retransmission Timeout (RTO) Expires at Client",
+            desc: "Client timer elapses with no ACK received.",
+            note: "TCP connection-oriented reliability mechanism detects missing ACK via timer expiration. Congestion window adjusted.",
+            type: "pkt-data",
+            direction: "none",
+            route: "none",
+            senderState: "ESTABLISHED (Timeout)",
+            receiverState: "ESTABLISHED",
+            inspector: {
+              protocol: "TCP",
+              srcPort: "Client Internal",
+              dstPort: "Timer Engine",
+              seqNum: "N/A",
+              ackNum: "N/A",
+              flags: ["RTO_TIMEOUT"],
+              headerLen: "N/A",
+              payloadLen: "N/A",
+              payload: "Timer expired: Retransmission triggered",
+              checksum: "N/A"
+            }
+          },
+          {
+            label: "5. Client Retransmits Segment 2 (Seq 1101..1200)",
+            desc: "Identical segment resent automatically by transport layer.",
+            note: "Client re-sends bytes 1101..1200 with identical sequence number. No application layer intervention required.",
+            type: "pkt-data",
+            direction: "to-receiver",
+            route: "r1",
+            senderState: "ESTABLISHED",
+            receiverState: "ESTABLISHED",
+            inspector: {
+              protocol: "TCP",
+              srcPort: "49152",
+              dstPort: "80",
+              seqNum: "1101",
+              ackNum: "500",
+              flags: ["ACK", "PSH"],
+              headerLen: "20 Bytes",
+              payloadLen: "100 Bytes",
+              payload: "Application Payload #2 (Retransmission)",
+              checksum: "0xABCD (Valid)"
+            }
+          },
+          {
+            label: "6. Server receives Segment 2 & returns ACK 1201",
+            desc: "Server successfully buffers Segment 2 and acknowledges.",
+            note: "Reliable, lossless in-order stream delivery is restored completely. Byte-stream integrity guaranteed.",
+            type: "pkt-ack",
+            direction: "to-sender",
+            route: "r1",
+            senderState: "ESTABLISHED",
+            receiverState: "ESTABLISHED",
+            inspector: {
+              protocol: "TCP",
+              srcPort: "80",
+              dstPort: "49152",
+              seqNum: "500",
+              ackNum: "1201",
+              flags: ["ACK"],
+              headerLen: "20 Bytes",
+              payloadLen: "0 Bytes",
+              payload: "None (ACK for Retransmitted Seg 2)",
+              checksum: "0xEF01 (Valid)"
+            }
+          }
+        ]
+      }
+    },
+    udp: {
+      standard: {
+        name: "Independent Datagram Streaming (Multi-path)",
+        steps: [
+          {
+            label: "1. Sender sends Datagram 1 via Router R1",
+            desc: "Immediate transmission with 0 RTT connection setup overhead.",
+            note: "UDP is connectionless. Sender emits Datagram 1 without handshake. Router R1 forwards it along primary path.",
+            type: "pkt-udp",
+            direction: "to-receiver",
+            route: "r1",
+            senderState: "STATELESS (Ready)",
+            receiverState: "STATELESS (Ready)",
+            inspector: {
+              protocol: "UDP",
+              srcPort: "53211",
+              dstPort: "5004 (RTP Audio)",
+              seqNum: "N/A (No Seq Num)",
+              ackNum: "N/A (No ACK)",
+              flags: ["NONE (No TCP Flags)"],
+              headerLen: "8 Bytes (Fixed)",
+              payloadLen: "120 Bytes",
+              payload: "Voice Packet #1 [Timestamp: 0ms]",
+              checksum: "0x4F12 (Optional Checksum)"
+            }
+          },
+          {
+            label: "2. Sender sends Datagram 2 via Router R2",
+            desc: "Datagram 2 routed independently along an alternate network link.",
+            note: "Each datagram carries complete destination addressing. Intermediate routing decisions are independent; R2 has longer delay.",
+            type: "pkt-udp",
+            direction: "to-receiver",
+            route: "r2",
+            senderState: "STATELESS (Ready)",
+            receiverState: "STATELESS (Ready)",
+            inspector: {
+              protocol: "UDP",
+              srcPort: "53211",
+              dstPort: "5004 (RTP Audio)",
+              seqNum: "N/A",
+              ackNum: "N/A",
+              flags: ["NONE"],
+              headerLen: "8 Bytes (Fixed)",
+              payloadLen: "120 Bytes",
+              payload: "Voice Packet #2 [Timestamp: 20ms]",
+              checksum: "0x88A1 (Valid)"
+            }
+          },
+          {
+            label: "3. Sender sends Datagram 3 via Router R1",
+            desc: "Datagram 3 sent immediately over the faster R1 path.",
+            note: "Datagram 3 travels via low-latency Router R1 while Datagram 2 is still traversing high-latency Router R2.",
+            type: "pkt-udp",
+            direction: "to-receiver",
+            route: "r1",
+            senderState: "STATELESS (Ready)",
+            receiverState: "STATELESS (Ready)",
+            inspector: {
+              protocol: "UDP",
+              srcPort: "53211",
+              dstPort: "5004 (RTP Audio)",
+              seqNum: "N/A",
+              ackNum: "N/A",
+              flags: ["NONE"],
+              headerLen: "8 Bytes (Fixed)",
+              payloadLen: "120 Bytes",
+              payload: "Voice Packet #3 [Timestamp: 40ms]",
+              checksum: "0x2D90 (Valid)"
+            }
+          },
+          {
+            label: "4. Receiver receives Datagram 1 & Datagram 3 (Out of Order!)",
+            desc: "Datagram 3 arrives BEFORE Datagram 2 due to independent paths.",
+            note: "UDP does not reorder or buffer datagrams. It immediately passes Datagram 3 to the application layer. The application must handle ordering.",
+            type: "pkt-udp",
+            direction: "to-receiver",
+            route: "r1",
+            senderState: "STATELESS",
+            receiverState: "STATELESS",
+            inspector: {
+              protocol: "UDP",
+              srcPort: "53211",
+              dstPort: "5004 (RTP Audio)",
+              seqNum: "N/A",
+              ackNum: "N/A",
+              flags: ["NONE"],
+              headerLen: "8 Bytes",
+              payloadLen: "120 Bytes",
+              payload: "Voice Packet #3 delivered before #2!",
+              checksum: "0x2D90 (Valid)"
+            }
+          },
+          {
+            label: "5. Receiver receives Datagram 2 (Delayed Arrival)",
+            desc: "Datagram 2 finally arrives via Router R2.",
+            note: "Transport layer does not keep track of missing packets. It delivers Datagram 2 upon arrival with zero connection state overhead.",
+            type: "pkt-udp",
+            direction: "to-receiver",
+            route: "r2",
+            senderState: "STATELESS",
+            receiverState: "STATELESS",
+            inspector: {
+              protocol: "UDP",
+              srcPort: "53211",
+              dstPort: "5004 (RTP Audio)",
+              seqNum: "N/A",
+              ackNum: "N/A",
+              flags: ["NONE"],
+              headerLen: "8 Bytes",
+              payloadLen: "120 Bytes",
+              payload: "Voice Packet #2 (Arrived late)",
+              checksum: "0x88A1 (Valid)"
+            }
+          }
+        ]
+      },
+      loss: {
+        name: "Datagram Loss & Lack of Retransmission",
+        steps: [
+          {
+            label: "1. Client sends DNS Query Datagram (Port 53)",
+            desc: "Single datagram query sent without prior connection setup.",
+            note: "DNS Client sends a 36-byte query for 'example.edu' directly to 203.0.113.50:53. Minimal overhead.",
+            type: "pkt-udp",
+            direction: "to-receiver",
+            route: "r1",
+            senderState: "STATELESS",
+            receiverState: "STATELESS",
+            inspector: {
+              protocol: "UDP",
+              srcPort: "60124",
+              dstPort: "53 (DNS)",
+              seqNum: "N/A",
+              ackNum: "N/A",
+              flags: ["NONE"],
+              headerLen: "8 Bytes",
+              payloadLen: "36 Bytes",
+              payload: "DNS Query: IN A example.edu",
+              checksum: "0x6A19 (Valid)"
+            }
+          },
+          {
+            label: "2. Server sends DNS Response Datagram",
+            desc: "DNS Server responds immediately to the sender's IP and port.",
+            note: "Server answers with IP address 93.184.216.34 in a single reply datagram. Round trip complete in 1 RTT.",
+            type: "pkt-udp",
+            direction: "to-sender",
+            route: "r1",
+            senderState: "STATELESS",
+            receiverState: "STATELESS",
+            inspector: {
+              protocol: "UDP",
+              srcPort: "53 (DNS)",
+              dstPort: "60124",
+              seqNum: "N/A",
+              ackNum: "N/A",
+              flags: ["NONE"],
+              headerLen: "8 Bytes",
+              payloadLen: "52 Bytes",
+              payload: "DNS Answer: 93.184.216.34 (TTL 300)",
+              checksum: "0x98FE (Valid)"
+            }
+          },
+          {
+            label: "3. Client sends 2nd Query - Dropped at Router R2",
+            desc: "Datagram dropped due to intermediate router queue discard.",
+            note: "Intermediate network router drops the packet. In UDP, there is no transport-layer notification, ACK, or retransmission.",
+            type: "pkt-dropped",
+            direction: "to-receiver",
+            route: "r2-drop",
+            senderState: "STATELESS",
+            receiverState: "STATELESS",
+            inspector: {
+              protocol: "UDP",
+              srcPort: "60125",
+              dstPort: "53 (DNS)",
+              seqNum: "N/A",
+              ackNum: "N/A",
+              flags: ["NONE"],
+              headerLen: "8 Bytes",
+              payloadLen: "36 Bytes",
+              payload: "DNS Query: IN A college.edu [DROPPED]",
+              checksum: "0x44B1 (Valid)"
+            }
+          },
+          {
+            label: "4. No Transport Retransmission Occurs",
+            desc: "UDP transport layer takes no recovery action whatsoever.",
+            note: "Best-effort delivery concept: UDP does not maintain timers or retransmission queues. The application layer resolver must time out and re-query.",
+            type: "pkt-udp",
+            direction: "none",
+            route: "none",
+            senderState: "STATELESS (No Action)",
+            receiverState: "STATELESS",
+            inspector: {
+              protocol: "UDP",
+              srcPort: "N/A",
+              dstPort: "N/A",
+              seqNum: "N/A",
+              ackNum: "N/A",
+              flags: ["NONE"],
+              headerLen: "N/A",
+              payloadLen: "N/A",
+              payload: "UDP has no built-in recovery mechanism.",
+              checksum: "N/A"
+            }
+          }
+        ]
+      }
+    }
+  };
+
+  // --- State Variables ---
+  let currentProtocol = "tcp";
+  let currentScenarioKey = "standard";
+  let currentStepIndex = -1;
+  let playTimer = null;
+  let playbackSpeed = 1.0;
+
+  // --- DOM Elements ---
+  const el = id => document.getElementById(id);
+
+  // Tab navigation elements
+  const tabSimTcp = el("tabSimTcp");
+  const tabSimUdp = el("tabSimUdp");
+  const tabComparison = el("tabComparison");
+  const tabTheory = el("tabTheory");
+  const tabExam = el("tabExam");
+
+  const panelSim = el("panelSim");
+  const panelComparison = el("panelComparison");
+  const panelTheory = el("panelTheory");
+  const panelExam = el("panelExam");
+
+  // Simulation controls
+  const scenarioSelect = el("scenarioSelect");
+  const btnPrev = el("btnPrev");
+  const btnNext = el("btnNext");
+  const btnPlay = el("btnPlay");
+  const btnReset = el("btnReset");
+
+  // Speed buttons
+  const speedBtns = document.querySelectorAll(".speed-btn");
+
+  // Scene elements
+  const packetLayer = el("packetAnimLayer");
+  const bannerBadge = el("bannerBadge");
+  const bannerDesc = el("bannerDesc");
+  const linkR1 = el("linkR1");
+  const linkR2 = el("linkR2");
+  const linkVirtual = el("linkVirtual");
+
+  // Node states
+  const senderSocketState = el("senderSocketState");
+  const receiverSocketState = el("receiverSocketState");
+
+  // Metric displays
+  const metricStep = el("metricStep");
+  const metricDelay = el("metricDelay");
+  const metricHeader = el("metricHeader");
+  const metricState = el("metricState");
+
+  // Side timeline & Inspector
+  const stepTimeline = el("stepTimeline");
+  const inspProtocol = el("inspProtocol");
+  const inspPduType = el("inspPduType");
+  const inspSrcPort = el("inspSrcPort");
+  const inspDstPort = el("inspDstPort");
+  const inspSeq = el("inspSeq");
+  const inspAck = el("inspAck");
+  const inspHdrLen = el("inspHdrLen");
+  const inspPayloadLen = el("inspPayloadLen");
+  const inspFlagsList = el("inspFlagsList");
+  const inspPayload = el("inspPayload");
+  const inspChecksum = el("inspChecksum");
+
+  // --- Helper Methods ---
+  function getActiveSteps() {
+    return SCENARIOS[currentProtocol][currentScenarioKey].steps;
+  }
+
+  function updateScenarioDropdown() {
+    const scenarios = SCENARIOS[currentProtocol];
+    scenarioSelect.innerHTML = "";
+    Object.keys(scenarios).forEach(key => {
+      const opt = document.createElement("option");
+      opt.value = key;
+      opt.textContent = scenarios[key].name;
+      if (key === currentScenarioKey) opt.selected = true;
+      scenarioSelect.appendChild(opt);
+    });
+  }
+
+  function switchMainTab(activeTabId) {
+    [tabSimTcp, tabSimUdp, tabComparison, tabTheory, tabExam].forEach(tab => {
+      tab.classList.toggle("active", tab.id === activeTabId);
+    });
+
+    panelSim.classList.toggle("active", activeTabId === "tabSimTcp" || activeTabId === "tabSimUdp");
+    panelComparison.classList.toggle("active", activeTabId === "tabComparison");
+    panelTheory.classList.toggle("active", activeTabId === "tabTheory");
+    panelExam.classList.toggle("active", activeTabId === "tabExam");
+
+    if (activeTabId === "tabSimTcp") {
+      setProtocol("tcp");
+    } else if (activeTabId === "tabSimUdp") {
+      setProtocol("udp");
+    }
+  }
+
+  function setProtocol(protocol) {
+    stopPlayback();
+    currentProtocol = protocol;
+    currentScenarioKey = Object.keys(SCENARIOS[protocol])[0];
+    currentStepIndex = -1;
+
+    tabSimTcp.classList.toggle("active", protocol === "tcp");
+    tabSimUdp.classList.toggle("active", protocol === "udp");
+
+    updateScenarioDropdown();
+    renderTimelineList();
+    renderStep();
+  }
+
+  function setScenario(scenarioKey) {
+    stopPlayback();
+    currentScenarioKey = scenarioKey;
+    currentStepIndex = -1;
+    renderTimelineList();
+    renderStep();
+  }
+
+  function renderTimelineList() {
+    const steps = getActiveSteps();
+    stepTimeline.innerHTML = steps.map((s, idx) => `
+      <div class="timeline-step-item ${idx === currentStepIndex ? 'active' : ''}" data-step="${idx}">
+        <div class="step-badge-no">${idx + 1}</div>
+        <div class="step-content-box">
+          <strong>${s.label}</strong>
+          <p>${s.desc}</p>
+        </div>
+      </div>
+    `).join("");
+
+    // Add click listeners to step items
+    stepTimeline.querySelectorAll(".timeline-step-item").forEach(item => {
+      item.addEventListener("click", () => {
+        stopPlayback();
+        const stepNum = parseInt(item.getAttribute("data-step"), 10);
+        currentStepIndex = stepNum;
+        renderStep();
+      });
+    });
+  }
+
+  function getNodeCoordinates(nodeName) {
+    // Percentage coordinates inside 100% relative container
+    switch(nodeName) {
+      case "sender": return { x: 14, y: 50 };
+      case "r1": return { x: 50, y: 24 };
+      case "r2": return { x: 50, y: 76 };
+      case "receiver": return { x: 86, y: 50 };
+      default: return { x: 50, y: 50 };
+    }
+  }
+
+  function renderStep() {
+    const steps = getActiveSteps();
+    const totalSteps = steps.length;
+
+    // Update buttons state
+    btnPrev.disabled = currentStepIndex <= 0;
+    btnNext.disabled = currentStepIndex >= totalSteps - 1;
+
+    // Update metrics
+    metricStep.textContent = `${Math.max(0, currentStepIndex + 1)} / ${totalSteps}`;
+    metricDelay.textContent = currentProtocol === "tcp" ? "1 RTT Handshake" : "0 RTT (Instant)";
+    metricHeader.textContent = currentProtocol === "tcp" ? "20–60 Bytes" : "8 Bytes (Fixed)";
+
+    // Update active highlight in timeline
+    stepTimeline.querySelectorAll(".timeline-step-item").forEach((item, idx) => {
+      item.classList.toggle("active", idx === currentStepIndex);
+    });
+
+    // Clear animations & link highlights
+    packetLayer.innerHTML = "";
+    linkR1.classList.remove("active-link", "udp-link");
+    linkR2.classList.remove("active-link", "udp-link");
+    linkVirtual.classList.remove("active-link");
+
+    if (currentStepIndex < 0) {
+      // Initial idle state
+      bannerBadge.textContent = "SYSTEM READY";
+      bannerBadge.style.color = "var(--primary-cyan)";
+      bannerDesc.textContent = currentProtocol === "tcp"
+        ? "TCP mode selected. Click 'Next Step' or 'Play Demo' to observe connection establishment, byte stream transfer, and 4-way termination."
+        : "UDP mode selected. Click 'Next Step' or 'Play Demo' to observe independent datagram transmission without connection establishment.";
+      
+      senderSocketState.textContent = currentProtocol === "tcp" ? "CLOSED" : "STATELESS";
+      senderSocketState.className = "node-socket-state " + (currentProtocol === "tcp" ? "state-closed" : "state-stateless");
+      receiverSocketState.textContent = currentProtocol === "tcp" ? "LISTEN" : "STATELESS";
+      receiverSocketState.className = "node-socket-state " + (currentProtocol === "tcp" ? "state-listen" : "state-stateless");
+      metricState.textContent = currentProtocol === "tcp" ? "Closed / Listen" : "Stateless";
+
+      clearInspector();
+      return;
+    }
+
+    const step = steps[currentStepIndex];
+
+    // Banner text
+    bannerBadge.textContent = `STEP ${currentStepIndex + 1} OF ${totalSteps}`;
+    bannerDesc.innerHTML = `<strong>${step.label}:</strong> ${step.desc} <span style="display:block;margin-top:4px;color:var(--text-muted);font-size:11px;">${step.note}</span>`;
+
+    // Sockets and states
+    senderSocketState.textContent = step.senderState;
+    senderSocketState.className = `node-socket-state ${getStateClass(step.senderState)}`;
+    receiverSocketState.textContent = step.receiverState;
+    receiverSocketState.className = `node-socket-state ${getStateClass(step.receiverState)}`;
+    metricState.textContent = `${step.senderState} / ${step.receiverState}`;
+
+    // Highlight links
+    if (step.route.includes("r1")) {
+      linkR1.classList.add(currentProtocol === "tcp" ? "active-link" : "udp-link");
+    }
+    if (step.route.includes("r2")) {
+      linkR2.classList.add(currentProtocol === "tcp" ? "active-link" : "udp-link");
+    }
+    if (currentProtocol === "tcp" && step.senderState === "ESTABLISHED" && step.receiverState === "ESTABLISHED") {
+      linkVirtual.classList.add("active-link");
+    }
+
+    // Packet Animation
+    if (step.direction !== "none") {
+      animatePacket(step);
+    }
+
+    // Update Packet Inspector
+    updateInspector(step.inspector);
+  }
+
+  function getStateClass(stateStr) {
+    if (!stateStr) return "state-closed";
+    const s = stateStr.toUpperCase();
+    if (s.includes("LISTEN")) return "state-listen";
+    if (s.includes("SYN_SENT")) return "state-syn-sent";
+    if (s.includes("SYN_RCVD")) return "state-syn-rcvd";
+    if (s.includes("ESTABLISHED")) return "state-established";
+    if (s.includes("CLOSE_WAIT") || s.includes("FIN_WAIT") || s.includes("LAST_ACK") || s.includes("TIME_WAIT")) return "state-closing";
+    if (s.includes("CLOSED")) return "state-closed";
+    return "state-stateless";
+  }
+
+  function animatePacket(step) {
+    const isForward = step.direction === "to-receiver";
+    const startCoord = getNodeCoordinates(isForward ? "sender" : "receiver");
+    const endCoord = getNodeCoordinates(isForward ? "receiver" : "sender");
+    const midRouter = step.route.includes("r2") ? getNodeCoordinates("r2") : getNodeCoordinates("r1");
+    const isDropped = step.type === "pkt-dropped";
+
+    const packet = document.createElement("div");
+    packet.className = `packet-pill ${step.type}`;
+    packet.textContent = getPillLabel(step);
+
+    // Initial position at start node
+    packet.style.left = `${startCoord.x}%`;
+    packet.style.top = `${startCoord.y}%`;
+    packetLayer.appendChild(packet);
+
+    const legDuration = (750 / playbackSpeed);
+
+    // Leg 1: Start node to Router
+    requestAnimationFrame(() => {
+      packet.style.transition = `left ${legDuration}ms ease-in, top ${legDuration}ms ease-in`;
+      packet.style.left = `${midRouter.x}%`;
+      packet.style.top = `${midRouter.y}%`;
+
+      setTimeout(() => {
+        if (isDropped) {
+          // Visual drop effect at router
+          packet.style.transition = "all 0.4s ease";
+          packet.style.transform = "translate(-50%, -50%) scale(1.4)";
+          packet.style.background = "#ef4444";
+          packet.textContent = "DROPPED ✕";
+          setTimeout(() => {
+            packet.style.opacity = "0";
+            packet.style.transform = "translate(-50%, -50%) scale(0.2)";
+          }, 450);
+          return;
+        }
+
+        // Leg 2: Router to Destination
+        packet.style.transition = `left ${legDuration}ms ease-out, top ${legDuration}ms ease-out`;
+        packet.style.left = `${endCoord.x}%`;
+        packet.style.top = `${endCoord.y}%`;
+      }, legDuration + 50);
+    });
+  }
+
+  function getPillLabel(step) {
+    if (step.type === "pkt-syn") return "TCP SYN";
+    if (step.type === "pkt-syn-ack") return "SYN-ACK";
+    if (step.type === "pkt-ack") return "TCP ACK";
+    if (step.type === "pkt-data") return "TCP DATA";
+    if (step.type === "pkt-fin") return "TCP FIN";
+    if (step.type === "pkt-udp") return "UDP D-GRAM";
+    if (step.type === "pkt-dropped") return "PACKET";
+    return "PDU";
+  }
+
+  function updateInspector(insp) {
+    if (!insp) {
+      clearInspector();
+      return;
+    }
+    inspProtocol.textContent = insp.protocol;
+    inspPduType.textContent = insp.protocol === "TCP" ? "Segment" : "Datagram";
+    inspSrcPort.textContent = insp.srcPort;
+    inspDstPort.textContent = insp.dstPort;
+    inspSeq.textContent = insp.seqNum;
+    inspAck.textContent = insp.ackNum;
+    inspHdrLen.textContent = insp.headerLen;
+    inspPayloadLen.textContent = insp.payloadLen;
+    inspPayload.textContent = insp.payload;
+    inspChecksum.textContent = insp.checksum;
+
+    // Render TCP Flags
+    const allFlags = ["SYN", "ACK", "FIN", "RST", "PSH", "URG"];
+    inspFlagsList.innerHTML = allFlags.map(f => {
+      const isActive = insp.flags && insp.flags.includes(f);
+      return `<span class="flag-chip ${isActive ? 'active-flag' : ''}">${f}</span>`;
+    }).join("");
+  }
+
+  function clearInspector() {
+    inspProtocol.textContent = currentProtocol.toUpperCase();
+    inspPduType.textContent = "Awaiting Transmission";
+    inspSrcPort.textContent = "--";
+    inspDstPort.textContent = "--";
+    inspSeq.textContent = "--";
+    inspAck.textContent = "--";
+    inspHdrLen.textContent = "--";
+    inspPayloadLen.textContent = "--";
+    inspPayload.textContent = "No packet currently in transit.";
+    inspChecksum.textContent = "--";
+    inspFlagsList.innerHTML = `<span class="flag-chip">NONE</span>`;
+  }
+
+  function nextStep() {
+    const steps = getActiveSteps();
+    if (currentStepIndex < steps.length - 1) {
+      currentStepIndex++;
+      renderStep();
+    } else {
+      stopPlayback();
+    }
+  }
+
+  function prevStep() {
+    if (currentStepIndex > 0) {
+      currentStepIndex--;
+      renderStep();
+    }
+  }
+
+  function resetSimulation() {
+    stopPlayback();
+    currentStepIndex = -1;
+    renderStep();
+  }
+
+  function togglePlayback() {
+    if (playTimer) {
+      stopPlayback();
+    } else {
+      startPlayback();
+    }
+  }
+
+  function startPlayback() {
+    const steps = getActiveSteps();
+    if (currentStepIndex >= steps.length - 1) {
+      currentStepIndex = -1;
+    }
+    btnPlay.textContent = "⏸ Pause Demo";
+    btnPlay.classList.add("btn-primary");
+    nextStep();
+
+    const intervalTime = Math.max(1600, 2200 / playbackSpeed);
+    playTimer = setInterval(() => {
+      if (currentStepIndex >= steps.length - 1) {
+        stopPlayback();
+      } else {
+        nextStep();
+      }
+    }, intervalTime);
+  }
+
+  function stopPlayback() {
+    if (playTimer) {
+      clearInterval(playTimer);
+      playTimer = null;
+    }
+    btnPlay.textContent = "▶ Play Demo";
+    btnPlay.classList.remove("btn-primary");
+  }
+
+  // --- Event Listeners Setup ---
+  function setupEventListeners() {
+    // Navigation Tabs
+    tabSimTcp.addEventListener("click", () => switchMainTab("tabSimTcp"));
+    tabSimUdp.addEventListener("click", () => switchMainTab("tabSimUdp"));
+    tabComparison.addEventListener("click", () => switchMainTab("tabComparison"));
+    tabTheory.addEventListener("click", () => switchMainTab("tabTheory"));
+    tabExam.addEventListener("click", () => switchMainTab("tabExam"));
+
+    // Scenario Dropdown
+    scenarioSelect.addEventListener("change", (e) => setScenario(e.target.value));
+
+    // Playback buttons
+    btnPrev.addEventListener("click", prevStep);
+    btnNext.addEventListener("click", nextStep);
+    btnPlay.addEventListener("click", togglePlayback);
+    btnReset.addEventListener("click", resetSimulation);
+
+    // Speed Controls
+    speedBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        speedBtns.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        playbackSpeed = parseFloat(btn.getAttribute("data-speed"));
+        if (playTimer) {
+          stopPlayback();
+          startPlayback();
+        }
+      });
+    });
+
+    // Theme Toggle
+    const themeToggleBtn = el("themeToggleBtn");
+    const themeIcon = el("themeIcon");
+    const themeLabel = el("themeLabel");
+    if (themeToggleBtn) {
+      themeToggleBtn.addEventListener("click", () => {
+        document.body.classList.toggle("dark-theme");
+        const isDark = document.body.classList.contains("dark-theme");
+        if (themeIcon) themeIcon.textContent = isDark ? "☀️" : "🌙";
+        if (themeLabel) themeLabel.textContent = isDark ? "Light Theme" : "Dark Theme";
+      });
+    }
+
+    // Keyboard Shortcuts
+    window.addEventListener("keydown", (e) => {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        nextStep();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        prevStep();
+      } else if (e.key === " " || e.code === "Space") {
+        e.preventDefault();
+        togglePlayback();
+      } else if (e.key === "r" || e.key === "R") {
+        e.preventDefault();
+        resetSimulation();
+      }
+    });
+  }
+
+  // --- Initialization ---
+  function init() {
+    setupEventListeners();
+    setProtocol("tcp");
+  }
+
+  init();
+})();
+
+</script>
+</body>
+</html>
